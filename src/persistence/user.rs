@@ -5,7 +5,6 @@ use sea_orm::ActiveModelBehavior;
 use sea_orm::ColumnTrait;
 use sea_orm::DatabaseConnection;
 use sea_orm::DeriveActiveEnum;
-use sea_orm::DeriveEntity;
 use sea_orm::DeriveEntityModel;
 use sea_orm::DeriveRelation;
 use sea_orm::EntityTrait;

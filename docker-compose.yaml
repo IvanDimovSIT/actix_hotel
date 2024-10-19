@@ -12,14 +12,5 @@ services:
       - db:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
 
-  hotel:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-
 volumes:
   db:

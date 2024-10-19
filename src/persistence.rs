@@ -1,4 +1,3 @@
-use std::{collections::HashMap, sync::Arc};
 
 use sea_orm::{ActiveModelTrait, ActiveValue, ConnectionTrait, DatabaseConnection, Schema};
 use user::find_user_by_email;
