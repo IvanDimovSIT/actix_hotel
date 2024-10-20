@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use sea_orm::{Database, DatabaseConnection};
 
-use crate::{constants::ENV_DATABASE_URL, persistence::initialise_db};
+use crate::{constants::ENV_DATABASE_URL, persistence::initialise_db, validation::Validator};
 
 pub struct EnvironmentVariables {
     env: HashMap<String, String>
@@ -27,7 +27,8 @@ impl EnvironmentVariables {
 #[derive(Clone)]
 pub struct AppState {
     pub db: Arc<DatabaseConnection>,
-    pub env: Arc<EnvironmentVariables>
+    pub env: Arc<EnvironmentVariables>,
+    pub validator: Arc<Validator>
 }
 impl AppState {
     pub async fn load() -> Self {
@@ -35,7 +36,8 @@ impl AppState {
 
         let state = Self {
             db: Arc::new(load_databse(&env).await),
-            env: Arc::new(env)
+            env: Arc::new(env),
+            validator: Arc::new(Validator::new())
         };
         println!("App state initialised");
 
