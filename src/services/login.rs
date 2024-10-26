@@ -1,4 +1,3 @@
-use std::error::Error;
 
 use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
 use jsonwebtoken::get_current_timestamp;

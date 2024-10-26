@@ -95,7 +95,7 @@ async fn initialise_admin(db: &DatabaseConnection, env: &EnvironmentVariables) {
         .await
         .expect("Error inserting initial admin user into database");
 
-    println!("Initilised admin user '{email}' with password: '{raw_password}' (change password immediately)");
+    println!("Initilised admin user with email: '{email}' and password: '{raw_password}' (change password immediately)");
 }
 
 pub async fn initialise_db(db: &DatabaseConnection, env: &EnvironmentVariables) {

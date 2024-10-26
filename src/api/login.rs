@@ -1,12 +1,14 @@
 use actix_web::{body::BoxBody, HttpResponse};
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
+use utoipa::{openapi::schema, ToSchema};
 
 use crate::validation::{Validate, Validator};
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct LoginInput {
+    #[schema(example = "user@example.com", required = true)]
     pub email: String,
+    #[schema(example = "12345678", required = true)]
     pub password: String,
 }
 impl Validate for LoginInput {

@@ -7,7 +7,9 @@ use crate::validation::{Validate, Validator};
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct RegisterUserInput {
+    #[schema(example = "user@example.com", required = true)]
     pub email: String,
+    #[schema(example = "12345678", required = true)]
     pub password: String,
 }
 impl Validate for RegisterUserInput {

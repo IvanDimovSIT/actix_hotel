@@ -1,5 +1,7 @@
-use actix_web::{body::BoxBody, http::StatusCode, HttpResponse, Responder};
+use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
 use serde::Serialize;
+
+use crate::constants::APPLICATION_JSON;
 
 pub mod hello_world;
 pub mod login;
@@ -15,5 +17,7 @@ where
             .body(format!("Error serializing output: {}", err));
     }
 
-    HttpResponse::with_body(status, BoxBody::new(result.unwrap()))
+    HttpResponse::build(status)
+        .content_type(APPLICATION_JSON)
+        .body(BoxBody::new(result.unwrap()))
 }

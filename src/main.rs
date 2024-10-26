@@ -19,12 +19,12 @@ mod validation;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
     let app_state = AppState::load().await;
-    println!("App state initialised");
-    println!("Starting server on {}:{}", REST_HOST.0, REST_HOST.1);
     HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(app_state.clone()))
+            .wrap(Logger::default())
+            .app_data(web::Data::new(app_state.clone())) 
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}")
                     .config(Config::default())

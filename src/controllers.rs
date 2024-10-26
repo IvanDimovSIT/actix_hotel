@@ -1,6 +1,6 @@
 use utoipa::openapi::{
-    security::{Http, HttpBuilder, SecurityScheme},
-    Components, Info, Object, OneOf, OpenApi, Paths, Ref, RefOr, Schema, SecurityRequirement,
+    security::{HttpBuilder, SecurityScheme},
+    Components, Info, Object, OpenApi, Schema,
 };
 
 pub mod auth;
@@ -36,6 +36,7 @@ impl ApiDoc {
         api.merge(<hello_world::HelloWorldApiDoc as utoipa::OpenApi>::openapi());
         api.merge(<auth::AuthApiDoc as utoipa::OpenApi>::openapi());
         api.info = Info::new("Hotel API", "0.1.0");
+        api.info.description = Some("Hotel backend system made in the actix web framework.".to_string());
 
         api
     }
