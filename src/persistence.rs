@@ -38,9 +38,9 @@ pub fn handle_db_error(error: DbErr) -> HttpResponse<BoxBody> {
         DbErr::UnpackInsertId => HttpResponse::InternalServerError().body(
             "DB error: After an insert statement it was impossible to retrieve the last_insert_id",
         ),
-        DbErr::UpdateGetPrimaryKey => HttpResponse::InternalServerError().body(
-            "DB error: Update Get Primary Key",
-        ),
+        DbErr::UpdateGetPrimaryKey => {
+            HttpResponse::InternalServerError().body("DB error: Update Get Primary Key")
+        }
         DbErr::RecordNotFound(e) => HttpResponse::InternalServerError().body(format!(
             "DB error: The record was not found in the database:{}",
             e

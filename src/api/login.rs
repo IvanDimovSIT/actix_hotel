@@ -1,16 +1,15 @@
 use actix_web::{body::BoxBody, HttpResponse};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
-use uuid::Uuid;
 
 use crate::validation::{Validate, Validator};
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
-pub struct RegisterUserInput {
+pub struct LoginInput {
     pub email: String,
     pub password: String,
 }
-impl Validate for RegisterUserInput {
+impl Validate for LoginInput {
     fn validate(&self, validator: &Validator) -> Result<(), HttpResponse<BoxBody>> {
         if let Err(err) = validator.validate_email(&self.email) {
             return Err(err);
@@ -25,6 +24,6 @@ impl Validate for RegisterUserInput {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
-pub struct RegisterUserOutput {
-    pub user_id: Uuid,
+pub struct LoginOutput {
+    pub token: String,
 }
