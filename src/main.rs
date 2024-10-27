@@ -24,7 +24,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
-            .app_data(web::Data::new(app_state.clone())) 
+            .app_data(web::Data::new(app_state.clone()))
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}")
                     .config(Config::default())

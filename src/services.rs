@@ -5,6 +5,7 @@ use crate::constants::APPLICATION_JSON;
 
 pub mod hello_world;
 pub mod login;
+pub mod promote;
 pub mod register_user;
 
 fn serialize_output<T>(body: &T, status: StatusCode) -> HttpResponse<BoxBody>

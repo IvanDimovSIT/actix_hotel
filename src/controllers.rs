@@ -10,7 +10,8 @@ pub mod hello_world;
 #[openapi(paths(
     hello_world::hello_world_controller,
     auth::register_controller,
-    auth::login_controller
+    auth::login_controller,
+    auth::promote_controller
 ))]
 pub struct ApiDoc;
 
@@ -36,7 +37,8 @@ impl ApiDoc {
         api.merge(<hello_world::HelloWorldApiDoc as utoipa::OpenApi>::openapi());
         api.merge(<auth::AuthApiDoc as utoipa::OpenApi>::openapi());
         api.info = Info::new("Hotel API", "0.1.0");
-        api.info.description = Some("Hotel backend system made in the actix web framework.".to_string());
+        api.info.description =
+            Some("Hotel backend system made in the actix web framework.".to_string());
 
         api
     }

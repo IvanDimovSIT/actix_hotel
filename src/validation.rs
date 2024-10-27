@@ -35,4 +35,16 @@ impl Validator {
 
         Err(HttpResponse::BadRequest().body("Invalid password: Needs to be between 8 and 20 characters (letters, numbers and symbols)"))
     }
+
+    pub fn validate_option<T>(
+        &self,
+        option: &Option<T>,
+        field_name: &str,
+    ) -> Result<(), HttpResponse<BoxBody>> {
+        if option.is_some() {
+            return Ok(());
+        }
+
+        Err(HttpResponse::BadRequest().body(format!("No input for '{}'", field_name)))
+    }
 }
