@@ -15,6 +15,7 @@ mod controllers;
 mod persistence;
 mod security;
 mod services;
+mod util;
 mod validation;
 
 #[actix_web::main]

@@ -1,11 +1,11 @@
 use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
-use jsonwebtoken::get_current_timestamp;
 
 use crate::{
     api::login::{LoginInput, LoginOutput},
     app_state::AppState,
     persistence::user::{find_user_by_email, Model},
-    security::{passwords_match, Claims},
+    security::passwords_match,
+    util::create_token_from_user,
 };
 
 use super::serialize_output;
@@ -30,22 +30,6 @@ async fn find_user(
     Ok(user)
 }
 
-fn create_token(user: &Model, app_state: &AppState) -> Result<String, HttpResponse<BoxBody>> {
-    let exp = get_current_timestamp() + app_state.security_info.jwt_validity;
-    let claims = Claims {
-        user_id: user.id,
-        role: user.role.clone(),
-        exp,
-    };
-
-    let token = claims.to_token(app_state);
-    if let Err(err) = token {
-        Err(HttpResponse::from_error(err))
-    } else {
-        Ok(token.unwrap())
-    }
-}
-
 pub async fn login(app_state: &AppState, input: &LoginInput) -> HttpResponse<BoxBody> {
     let result_find_user = find_user(app_state, input).await;
     if let Err(err) = result_find_user {
@@ -57,7 +41,7 @@ pub async fn login(app_state: &AppState, input: &LoginInput) -> HttpResponse<Box
         return HttpResponse::Unauthorized().body(INVALID_CREDENTIALS);
     }
 
-    let token = create_token(&user, app_state);
+    let token = create_token_from_user(&user, app_state);
     if let Err(err) = token {
         return err;
     }

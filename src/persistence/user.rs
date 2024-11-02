@@ -30,7 +30,7 @@ pub struct Model {
 }
 
 #[derive(
-    Clone, Debug, PartialEq, Eq, Default, EnumIter, DeriveActiveEnum, Serialize, Deserialize
+    Clone, Debug, PartialEq, Eq, Default, EnumIter, DeriveActiveEnum, Serialize, Deserialize,
 )]
 #[sea_orm(rs_type = "String", db_type = "String(StringLen::N(16))")]
 pub enum Role {
@@ -55,4 +55,13 @@ pub async fn find_user_by_email(
         .await?;
 
     Ok(user)
+}
+
+pub async fn find_user_by_id(
+    db: &DatabaseConnection,
+    id: &Uuid,
+) -> Result<Option<Model>, Box<dyn Error>> {
+    Ok(crate::persistence::user::Entity::find_by_id(*id)
+        .one(db)
+        .await?)
 }

@@ -11,7 +11,8 @@ pub mod hello_world;
     hello_world::hello_world_controller,
     auth::register_controller,
     auth::login_controller,
-    auth::promote_controller
+    auth::promote_controller,
+    auth::refresh_token_controller
 ))]
 pub struct ApiDoc;
 

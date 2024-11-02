@@ -1,5 +1,5 @@
 use actix_web::{
-    post, put,
+    get, post, put,
     web::{Data, Json, ServiceConfig},
     HttpRequest, Responder,
 };
@@ -9,18 +9,21 @@ use crate::{
     api::{
         login::{LoginInput, LoginOutput},
         promote::{PromoteInput, PromoteOutput},
+        refresh_token::{RefreshTokenInput, RefreshTokenOutput},
         register_user::{RegisterUserInput, RegisterUserOutput},
     },
     app_state::AppState,
     persistence::user::Role,
     security::{decode_claims, Claims},
-    services::{login::login, promote::promote, register_user::register_user},
+    services::{
+        login::login, promote::promote, refresh_token::refresh_token, register_user::register_user,
+    },
     validation::Validate,
 };
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(register_controller, login_controller),
+    paths(register_controller, login_controller, refresh_token_controller),
     components(schemas(
         Claims,
         RegisterUserInput,
@@ -28,7 +31,8 @@ use crate::{
         LoginInput,
         LoginOutput,
         PromoteInput,
-        PromoteOutput
+        PromoteOutput,
+        RefreshTokenOutput
     ))
 )]
 pub struct AuthApiDoc;
@@ -37,6 +41,7 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(register_controller);
     cfg.service(login_controller);
     cfg.service(promote_controller);
+    cfg.service(refresh_token_controller);
 }
 
 #[utoipa::path(
@@ -116,4 +121,27 @@ pub async fn promote_controller(
     }
 
     promote(&state, &promote_input).await
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Successful Promotion", body = RefreshTokenOutput),
+        (status = 400, description = "Invalid input", body = String),
+        (status = 401, description = "Invalid credentials", body = String),
+        (status = 404, description = "User not found", body = String),
+    ),
+    security(("bearer_auth" = []))
+)]
+#[get("/auth/refresh")]
+pub async fn refresh_token_controller(req: HttpRequest, state: Data<AppState>) -> impl Responder {
+    let authorization = decode_claims(&req, &state, &[Role::User, Role::Admin]);
+    if let Err(err) = authorization {
+        return err;
+    }
+
+    let refresh_token_input = RefreshTokenInput {
+        claims: authorization.unwrap(),
+    };
+
+    refresh_token(&state, &refresh_token_input).await
 }

@@ -89,10 +89,7 @@ pub fn decode_claims(
         return Err(HttpResponse::Unauthorized().body("Not authenticated: invalid JWT format"));
     }
 
-    let decoded = Claims::from_token(
-        auth_header.strip_prefix(BEARER_PREFIX).unwrap(),
-        app_state
-    );
+    let decoded = Claims::from_token(auth_header.strip_prefix(BEARER_PREFIX).unwrap(), app_state);
     if let Err(err) = decoded {
         return Err(HttpResponse::from_error(err));
     }
