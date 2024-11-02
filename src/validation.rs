@@ -9,6 +9,7 @@ pub trait Validate {
 pub struct Validator {
     email_regex: Regex,
     password_regex: Regex,
+    room_number_regex: Regex,
 }
 impl Validator {
     pub fn new() -> Self {
@@ -17,6 +18,8 @@ impl Validator {
                 .expect("Error creating email regex"),
             password_regex: Regex::new("^[a-zA-Z0-9!@#$%^&*(){}]{8,20}$")
                 .expect("Error creating password regex"),
+            room_number_regex: Regex::new("^[0-9]{1,5}[A-Z]?$")
+                .expect("Error creating room number regex"),
         }
     }
 
@@ -34,6 +37,16 @@ impl Validator {
         }
 
         Err(HttpResponse::BadRequest().body("Invalid password: Needs to be between 8 and 20 characters (letters, numbers and symbols)"))
+    }
+
+    pub fn validate_room_number(&self, room_number: &str) -> Result<(), HttpResponse<BoxBody>> {
+        if self.room_number_regex.is_match(room_number) {
+            return Ok(());
+        }
+
+        Err(HttpResponse::BadRequest().body(
+            "Invalid room number: Needs to be numbers optionally followed by an upper case letter",
+        ))
     }
 
     pub fn validate_option<T>(

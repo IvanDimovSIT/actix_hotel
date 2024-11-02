@@ -5,6 +5,7 @@ use utoipa::openapi::{
 
 pub mod auth;
 pub mod hello_world;
+pub mod room;
 
 #[derive(utoipa::OpenApi)]
 #[openapi(paths(
@@ -12,7 +13,8 @@ pub mod hello_world;
     auth::register_controller,
     auth::login_controller,
     auth::promote_controller,
-    auth::refresh_token_controller
+    auth::refresh_token_controller,
+    room::add_room_controller
 ))]
 pub struct ApiDoc;
 
@@ -37,6 +39,7 @@ impl ApiDoc {
 
         api.merge(<hello_world::HelloWorldApiDoc as utoipa::OpenApi>::openapi());
         api.merge(<auth::AuthApiDoc as utoipa::OpenApi>::openapi());
+        api.merge(<room::RoomApiDoc as utoipa::OpenApi>::openapi());
         api.info = Info::new("Hotel API", "0.1.0");
         api.info.description =
             Some("Hotel backend system made in the actix web framework.".to_string());

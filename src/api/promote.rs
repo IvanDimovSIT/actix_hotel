@@ -11,9 +11,7 @@ pub struct PromoteInput {
 }
 impl Validate for PromoteInput {
     fn validate(&self, validator: &Validator) -> Result<(), HttpResponse<BoxBody>> {
-        if let Err(err) = validator.validate_email(&self.email) {
-            return Err(err);
-        }
+        validator.validate_email(&self.email)?;
 
         return Ok(());
     }

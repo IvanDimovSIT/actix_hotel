@@ -1,5 +1,9 @@
 use actix_web::{body::BoxBody, HttpResponse};
-use sea_orm::{ActiveModelTrait, ActiveValue, ConnectionTrait, DatabaseConnection, DbErr, Schema};
+use env_logger::Logger;
+use sea_orm::{
+    ActiveModelTrait, ActiveValue, ConnectionTrait, DatabaseBackend, DatabaseConnection, DbErr,
+    EntityTrait, Schema,
+};
 use user::find_user_by_email;
 use uuid::Uuid;
 
@@ -9,6 +13,8 @@ use crate::{
     security::{generate_salt, hash_with_salt},
 };
 
+pub mod bed;
+pub mod room;
 pub mod user;
 
 pub fn handle_db_error(error: DbErr) -> HttpResponse<BoxBody> {
@@ -98,19 +104,23 @@ async fn initialise_admin(db: &DatabaseConnection, env: &EnvironmentVariables) {
     println!("Initilised admin user with email: '{email}' and password: '{raw_password}' (change password immediately)");
 }
 
-pub async fn initialise_db(db: &DatabaseConnection, env: &EnvironmentVariables) {
+async fn intitialise_table<E>(db: &DatabaseConnection, entity: E)
+where
+    E: EntityTrait,
+{
     let builder = db.get_database_backend();
     let schema = Schema::new(builder);
-    let statement = builder.build(
-        schema
-            .create_table_from_entity(user::Entity)
-            .if_not_exists(),
-    );
-
+    let statement = builder.build(schema.create_table_from_entity(entity).if_not_exists());
     let result = db.execute(statement).await;
-    if result.is_err() {
-        println!("Can't create enitiy:{}", result.unwrap_err())
+    if let Err(err) = result {
+        panic!("Can't create enitiy:{}", err);
     }
+}
+
+pub async fn initialise_db(db: &DatabaseConnection, env: &EnvironmentVariables) {
+    intitialise_table(db, user::Entity).await;
+    intitialise_table(db, room::Entity).await;
+    intitialise_table(db, bed::Entity).await;
 
     initialise_admin(db, env).await;
 }

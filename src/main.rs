@@ -4,6 +4,7 @@ use constants::REST_HOST;
 use controllers::{
     auth,
     hello_world::{self},
+    room,
 };
 use utoipa::OpenApi;
 use utoipa_swagger_ui::{Config, SwaggerUi};
@@ -33,6 +34,7 @@ async fn main() -> std::io::Result<()> {
             )
             .configure(hello_world::config)
             .configure(auth::config)
+            .configure(room::config)
     })
     .bind(REST_HOST)?
     .run()

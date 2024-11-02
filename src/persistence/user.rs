@@ -14,7 +14,6 @@ use sea_orm::PrimaryKeyTrait;
 use sea_orm::QueryFilter;
 use serde::Deserialize;
 use serde::Serialize;
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, PartialEq, Eq, Default, DeriveEntityModel)]

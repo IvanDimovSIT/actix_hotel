@@ -14,13 +14,8 @@ pub struct RegisterUserInput {
 }
 impl Validate for RegisterUserInput {
     fn validate(&self, validator: &Validator) -> Result<(), HttpResponse<BoxBody>> {
-        if let Err(err) = validator.validate_email(&self.email) {
-            return Err(err);
-        }
-
-        if let Err(err) = validator.validate_password(&self.password) {
-            return Err(err);
-        }
+        validator.validate_email(&self.email)?;
+        validator.validate_password(&self.password)?;
 
         return Ok(());
     }
