@@ -1,4 +1,4 @@
-use actix_web::{body::BoxBody, HttpResponse};
+use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
 use jsonwebtoken::get_current_timestamp;
 
 use crate::{app_state::AppState, security::Claims};
@@ -19,5 +19,23 @@ pub fn create_token_from_user(
         Err(HttpResponse::from_error(err))
     } else {
         Ok(token.unwrap())
+    }
+}
+
+pub fn require_some<T, F>(
+    option: Option<T>,
+    message_provider: F,
+    status: StatusCode,
+) -> Result<T, HttpResponse<BoxBody>>
+where
+    F: FnOnce() -> String,
+{
+    if let Some(some) = option {
+        Ok(some)
+    } else {
+        Err(HttpResponse::with_body(
+            status,
+            BoxBody::new(message_provider()),
+        ))
     }
 }

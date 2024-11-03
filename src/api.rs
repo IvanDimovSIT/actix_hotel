@@ -1,4 +1,5 @@
 pub mod add_room;
+pub mod change_password;
 pub mod login;
 pub mod promote;
 pub mod refresh_token;

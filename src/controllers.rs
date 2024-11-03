@@ -3,6 +3,8 @@ use utoipa::openapi::{
     Components, Info, Object, OpenApi, Schema,
 };
 
+use crate::constants::{API_DESCRIPTION, API_NAME, API_VERSION};
+
 pub mod auth;
 pub mod hello_world;
 pub mod room;
@@ -14,6 +16,7 @@ pub mod room;
     auth::login_controller,
     auth::promote_controller,
     auth::refresh_token_controller,
+    auth::change_password_controller,
     room::add_room_controller
 ))]
 pub struct ApiDoc;
@@ -40,9 +43,8 @@ impl ApiDoc {
         api.merge(<hello_world::HelloWorldApiDoc as utoipa::OpenApi>::openapi());
         api.merge(<auth::AuthApiDoc as utoipa::OpenApi>::openapi());
         api.merge(<room::RoomApiDoc as utoipa::OpenApi>::openapi());
-        api.info = Info::new("Hotel API", "0.1.0");
-        api.info.description =
-            Some("Hotel backend system made in the actix web framework.".to_string());
+        api.info = Info::new(API_NAME, API_VERSION);
+        api.info.description = Some(API_DESCRIPTION.to_string());
 
         api
     }

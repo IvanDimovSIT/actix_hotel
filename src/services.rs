@@ -4,6 +4,7 @@ use serde::Serialize;
 use crate::constants::APPLICATION_JSON;
 
 pub mod add_room;
+pub mod change_password;
 pub mod hello_world;
 pub mod login;
 pub mod promote;

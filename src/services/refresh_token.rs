@@ -5,7 +5,7 @@ use crate::{
     app_state::AppState,
     persistence::user::{find_user_by_id, Model},
     services::serialize_output,
-    util::create_token_from_user,
+    util::{create_token_from_user, require_some},
 };
 
 async fn find_user(
@@ -17,15 +17,11 @@ async fn find_user(
         return Err(HttpResponse::from_error(err));
     }
     let option_find_user = result_find_user.unwrap();
-
-    if option_find_user.is_none() {
-        return Err(HttpResponse::NotFound().body(format!(
-            "User with email '{}' not found",
-            &input.claims.user_id
-        )));
-    }
-
-    let user = option_find_user.unwrap();
+    let user = require_some(
+        option_find_user,
+        || format!("User with email '{}' not found", &input.claims.user_id),
+        StatusCode::NOT_FOUND,
+    )?;
 
     Ok(user)
 }

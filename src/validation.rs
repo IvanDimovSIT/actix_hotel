@@ -1,6 +1,8 @@
 use actix_web::{body::BoxBody, HttpResponse};
 use regex::Regex;
 
+use crate::util::require_some;
+
 pub trait Validate {
     fn validate(&self, validator: &Validator) -> Result<(), HttpResponse<BoxBody>>;
 }

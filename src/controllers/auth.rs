@@ -7,6 +7,7 @@ use utoipa::OpenApi;
 
 use crate::{
     api::{
+        change_password::{ChangePasswordInput, ChangePasswordOutput},
         login::{LoginInput, LoginOutput},
         promote::{PromoteInput, PromoteOutput},
         refresh_token::{RefreshTokenInput, RefreshTokenOutput},
@@ -16,14 +17,20 @@ use crate::{
     persistence::user::Role,
     security::{decode_claims, Claims},
     services::{
-        login::login, promote::promote, refresh_token::refresh_token, register_user::register_user,
+        change_password::change_password, login::login, promote::promote,
+        refresh_token::refresh_token, register_user::register_user,
     },
     validation::Validate,
 };
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(register_controller, login_controller, refresh_token_controller),
+    paths(
+        register_controller,
+        login_controller,
+        refresh_token_controller,
+        change_password_controller
+    ),
     components(schemas(
         Claims,
         RegisterUserInput,
@@ -32,16 +39,19 @@ use crate::{
         LoginOutput,
         PromoteInput,
         PromoteOutput,
-        RefreshTokenOutput
+        RefreshTokenOutput,
+        ChangePasswordInput,
+        ChangePasswordOutput
     ))
 )]
 pub struct AuthApiDoc;
 
 pub fn config(cfg: &mut ServiceConfig) {
-    cfg.service(register_controller);
     cfg.service(login_controller);
+    cfg.service(register_controller);
     cfg.service(promote_controller);
     cfg.service(refresh_token_controller);
+    cfg.service(change_password_controller);
 }
 
 #[utoipa::path(
@@ -53,7 +63,7 @@ pub fn config(cfg: &mut ServiceConfig) {
         content = RegisterUserInput,
         description = "Registration data",
         content_type = "application/json"
-    )
+    ),
 )]
 #[post("/auth/register")]
 pub async fn register_controller(
@@ -144,4 +154,42 @@ pub async fn refresh_token_controller(req: HttpRequest, state: Data<AppState>) -
     };
 
     refresh_token(&state, &refresh_token_input).await
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Successfully changed password", body = ChangePasswordOutput),
+        (status = 400, description = "Invalid input", body = String),
+        (status = 401, description = "Invalid credentials", body = String),
+        (status = 403, description = "Invalid credentials", body = String),
+    ),
+    request_body(
+        content = ChangePasswordInput,
+        description = "Change password data",
+        content_type = "application/json"
+    ),
+    security(("bearer_auth" = []))
+)]
+#[put("/auth/change-password")]
+pub async fn change_password_controller(
+    req: HttpRequest,
+    state: Data<AppState>,
+    input: Json<ChangePasswordInput>,
+) -> impl Responder {
+    let authorization = decode_claims(&req, &state, &[Role::Admin, Role::User]);
+    if let Err(err) = authorization {
+        return err;
+    }
+    let user_id = authorization.unwrap().user_id;
+
+    let change_password_input = input.into_inner();
+    let change_password_input = ChangePasswordInput {
+        user_id,
+        ..change_password_input
+    };
+    if let Err(err) = change_password_input.validate(&state.validator) {
+        return err;
+    }
+
+    change_password(&state, &change_password_input).await
 }
