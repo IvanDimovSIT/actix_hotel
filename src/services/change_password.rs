@@ -12,7 +12,7 @@ use crate::{
     util::require_some,
 };
 
-use super::serialize_output;
+use super::{error_response, error_to_response, serialize_output};
 
 async fn find_user(
     app_state: &AppState,
@@ -20,7 +20,7 @@ async fn find_user(
 ) -> Result<user::Model, HttpResponse<BoxBody>> {
     let find_user_result = find_user_by_id(&app_state.db, &input.user_id).await;
     if let Err(err) = find_user_result {
-        return Err(HttpResponse::from_error(err));
+        return Err(error_to_response(err));
     }
     let option_user = find_user_result.unwrap();
 
@@ -60,7 +60,7 @@ pub async fn change_password(
     }
     let user = result_find_user.unwrap();
     if !passwords_match(&input.old_password, &user.salt, &user.password) {
-        return HttpResponse::Unauthorized().body("Invalid credentials");
+        return error_response("Invalid credentials".to_string(), StatusCode::UNAUTHORIZED);
     }
 
     if let Err(err) = save_new_user(app_state, user, input).await {

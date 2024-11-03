@@ -1,4 +1,8 @@
-use actix_web::{body::BoxBody, HttpResponse};
+use actix_web::{
+    body::BoxBody,
+    http::{header::ContentType, StatusCode},
+    HttpResponse,
+};
 use env_logger::Logger;
 use sea_orm::{
     ActiveModelTrait, ActiveValue, ConnectionTrait, DatabaseBackend, DatabaseConnection, DbErr,
@@ -11,65 +15,64 @@ use crate::{
     app_state::EnvironmentVariables,
     constants::{ENV_INITIAL_ADMIN_EMAIL, ENV_INITIAL_ADMIN_PASSWORD},
     security::{generate_salt, hash_with_salt},
+    services::error_response,
 };
 
 pub mod bed;
 pub mod room;
 pub mod user;
 
-pub fn handle_db_error(error: DbErr) -> HttpResponse<BoxBody> {
+fn db_error_to_string(error: DbErr) -> String {
     match error {
-        DbErr::ConnectionAcquire(conn_acquire_err) => HttpResponse::InternalServerError()
-            .body(format!("DB error: Connection error:{}", conn_acquire_err)),
+        DbErr::ConnectionAcquire(conn_acquire_err) => {
+            format!("DB error: Connection error:{}", conn_acquire_err)
+        }
         DbErr::TryIntoErr { from, into, source } => {
-            HttpResponse::InternalServerError().body(format!(
+            format!(
                 "DB error: Conversion error from '{}' to '{}':{}",
                 from, into, source
-            ))
+            )
         }
-        DbErr::Conn(runtime_err) => HttpResponse::InternalServerError()
-            .body(format!("DB error: Connection error:{}", runtime_err)),
-        DbErr::Exec(runtime_err) => HttpResponse::InternalServerError().body(format!(
+        DbErr::Conn(runtime_err) => format!("DB error: Connection error:{}", runtime_err),
+        DbErr::Exec(runtime_err) => format!(
             "DB error: An operation did not execute successfully:{}",
             runtime_err
-        )),
-        DbErr::Query(runtime_err) => HttpResponse::InternalServerError().body(format!(
+        ),
+        DbErr::Query(runtime_err) => format!(
             "DB error: An error occurred while performing a query:{}",
             runtime_err
-        )),
-        DbErr::ConvertFromU64(e) => HttpResponse::InternalServerError().body(format!(
+        ),
+        DbErr::ConvertFromU64(e) => format!(
             "DB error: Type error: the specified type cannot be converted from u64:{}",
             e
-        )),
-        DbErr::UnpackInsertId => HttpResponse::InternalServerError().body(
-            "DB error: After an insert statement it was impossible to retrieve the last_insert_id",
         ),
-        DbErr::UpdateGetPrimaryKey => {
-            HttpResponse::InternalServerError().body("DB error: Update Get Primary Key")
+        DbErr::UnpackInsertId => {
+            "DB error: After an insert statement it was impossible to retrieve the last_insert_id"
+                .to_string()
         }
-        DbErr::RecordNotFound(e) => HttpResponse::InternalServerError().body(format!(
-            "DB error: The record was not found in the database:{}",
-            e
-        )),
-        DbErr::Type(e) => HttpResponse::InternalServerError().body(format!(
+        DbErr::UpdateGetPrimaryKey => "DB error: Update Get Primary Key".to_string(),
+        DbErr::RecordNotFound(e) => {
+            format!("DB error: The record was not found in the database:{}", e)
+        }
+        DbErr::Type(e) => format!(
             "DB error: Error occurred while parsing value as target type:{}",
             e
-        )),
-        DbErr::Json(e) => HttpResponse::InternalServerError().body(format!(
+        ),
+        DbErr::Json(e) => format!(
             "DB error: Error occurred while parsing json value as target type:{}",
             e
-        )),
+        ),
         DbErr::Migration(e) => {
-            HttpResponse::InternalServerError().body(format!("DB error: A migration error:{}", e))
+            format!("DB error: A migration error:{}", e)
         }
-        DbErr::RecordNotInserted => {
-            HttpResponse::InternalServerError().body("DB error: Record Not Inserted")
-        }
-        DbErr::RecordNotUpdated => {
-            HttpResponse::InternalServerError().body("DB error: Record Not Updated")
-        }
-        _ => HttpResponse::InternalServerError().body("DB error"),
+        DbErr::RecordNotInserted => "DB error: Record Not Inserted".to_string(),
+        DbErr::RecordNotUpdated => "DB error: Record Not Updated".to_string(),
+        _ => "DB error".to_string(),
     }
+}
+
+pub fn handle_db_error(error: DbErr) -> HttpResponse<BoxBody> {
+    error_response(db_error_to_string(error), StatusCode::INTERNAL_SERVER_ERROR)
 }
 
 async fn initialise_admin(db: &DatabaseConnection, env: &EnvironmentVariables) {

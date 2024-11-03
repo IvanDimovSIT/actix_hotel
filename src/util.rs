@@ -1,7 +1,7 @@
 use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
 use jsonwebtoken::get_current_timestamp;
 
-use crate::{app_state::AppState, security::Claims};
+use crate::{app_state::AppState, security::Claims, services::error_response};
 
 pub fn create_token_from_user(
     user: &crate::persistence::user::Model,
@@ -33,9 +33,6 @@ where
     if let Some(some) = option {
         Ok(some)
     } else {
-        Err(HttpResponse::with_body(
-            status,
-            BoxBody::new(message_provider()),
-        ))
+        Err(error_response(message_provider(), status))
     }
 }

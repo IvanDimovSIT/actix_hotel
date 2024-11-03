@@ -8,7 +8,7 @@ use crate::{
     util::{create_token_from_user, require_some},
 };
 
-use super::serialize_output;
+use super::{error_response, serialize_output};
 
 const INVALID_CREDENTIALS: &str = "Invalid credentials";
 
@@ -18,7 +18,10 @@ async fn find_user(
 ) -> Result<Model, HttpResponse<BoxBody>> {
     let result_find_user = find_user_by_email(&app_state.db, &input.email).await;
     if result_find_user.is_err() {
-        return Err(HttpResponse::Unauthorized().body(INVALID_CREDENTIALS));
+        return Err(error_response(
+            INVALID_CREDENTIALS.to_string(),
+            StatusCode::UNAUTHORIZED,
+        ));
     }
 
     let option_find_user = result_find_user.unwrap();
@@ -39,7 +42,7 @@ pub async fn login(app_state: &AppState, input: &LoginInput) -> HttpResponse<Box
 
     let user = result_find_user.unwrap();
     if !passwords_match(&input.password, &user.salt, &user.password) {
-        return HttpResponse::Unauthorized().body(INVALID_CREDENTIALS);
+        return error_response(INVALID_CREDENTIALS.to_string(), StatusCode::UNAUTHORIZED);
     }
 
     let token = create_token_from_user(&user, app_state);

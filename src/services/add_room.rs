@@ -14,20 +14,22 @@ use crate::{
     services::serialize_output,
 };
 
+use super::{error_response, error_to_response};
+
 async fn check_room_number_not_used(
     db: &DatabaseConnection,
     input: &AddRoomInput,
 ) -> Result<(), HttpResponse<BoxBody>> {
     let result = room::find_by_room_number(db, &input.room_number).await;
     if let Err(err) = result {
-        return Err(HttpResponse::from_error(err));
+        return Err(error_to_response(err));
     }
 
     if result.unwrap().is_some() {
-        return Err(HttpResponse::BadRequest().body(format!(
-            "Room number '{}' is already in use",
-            input.room_number
-        )));
+        return Err(error_response(
+            format!("Room number '{}' is already in use", input.room_number),
+            StatusCode::BAD_REQUEST,
+        ));
     }
 
     Ok(())

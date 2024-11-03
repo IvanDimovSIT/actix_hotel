@@ -11,7 +11,7 @@ use crate::{
     security::{generate_salt, hash_with_salt},
 };
 
-use super::serialize_output;
+use super::{error_response, error_to_response, serialize_output};
 
 pub async fn register_user(
     db: &DatabaseConnection,
@@ -19,11 +19,14 @@ pub async fn register_user(
 ) -> HttpResponse<BoxBody> {
     let result = find_user_by_email(db, &input.email).await;
     if let Err(err) = result {
-        return HttpResponse::from_error(err);
+        return error_to_response(err);
     }
 
     if result.unwrap().is_some() {
-        return HttpResponse::BadRequest().body(format!("Email {} already taken", &input.email));
+        return error_response(
+            format!("Email {} already taken", &input.email),
+            StatusCode::BAD_REQUEST,
+        );
     }
 
     let salt = generate_salt();

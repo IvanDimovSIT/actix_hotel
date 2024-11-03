@@ -18,7 +18,7 @@ use crate::{
     security::{decode_claims, Claims},
     services::{
         change_password::change_password, login::login, promote::promote,
-        refresh_token::refresh_token, register_user::register_user,
+        refresh_token::refresh_token, register_user::register_user, ErrorReponse,
     },
     validation::Validate,
 };
@@ -32,6 +32,7 @@ use crate::{
         change_password_controller
     ),
     components(schemas(
+        ErrorReponse,
         Claims,
         RegisterUserInput,
         RegisterUserOutput,
@@ -57,7 +58,7 @@ pub fn config(cfg: &mut ServiceConfig) {
 #[utoipa::path(
     responses(
         (status = 201, description = "Successful Registration", body = RegisterUserOutput),
-        (status = 400, description = "Invalid input", body = String)
+        (status = 400, description = "Invalid input", body = ErrorReponse)
     ),
     request_body(
         content = RegisterUserInput,
@@ -81,8 +82,8 @@ pub async fn register_controller(
 #[utoipa::path(
     responses(
         (status = 200, description = "Successful Registration", body = LoginOutput),
-        (status = 400, description = "Invalid input", body = String),
-        (status = 401, description = "Invalid credentials", body = String)
+        (status = 400, description = "Invalid input", body = ErrorReponse),
+        (status = 401, description = "Invalid credentials", body = ErrorReponse)
     ),
     request_body(
         content = LoginInput,
@@ -103,9 +104,9 @@ pub async fn login_controller(state: Data<AppState>, input: Json<LoginInput>) ->
 #[utoipa::path(
     responses(
         (status = 200, description = "Successful Promotion", body = PromoteOutput),
-        (status = 400, description = "Invalid input", body = String),
-        (status = 401, description = "Invalid credentials", body = String),
-        (status = 403, description = "Invalid credentials", body = String),
+        (status = 400, description = "Invalid input", body = ErrorReponse),
+        (status = 401, description = "Invalid credentials", body = ErrorReponse),
+        (status = 403, description = "Invalid credentials", body = ErrorReponse),
     ),
     request_body(
         content = PromoteInput,
@@ -136,9 +137,9 @@ pub async fn promote_controller(
 #[utoipa::path(
     responses(
         (status = 200, description = "Successful Promotion", body = RefreshTokenOutput),
-        (status = 400, description = "Invalid input", body = String),
-        (status = 401, description = "Invalid credentials", body = String),
-        (status = 404, description = "User not found", body = String),
+        (status = 400, description = "Invalid input", body = ErrorReponse),
+        (status = 401, description = "Invalid credentials", body = ErrorReponse),
+        (status = 404, description = "User not found", body = ErrorReponse),
     ),
     security(("bearer_auth" = []))
 )]
@@ -159,9 +160,9 @@ pub async fn refresh_token_controller(req: HttpRequest, state: Data<AppState>) -
 #[utoipa::path(
     responses(
         (status = 200, description = "Successfully changed password", body = ChangePasswordOutput),
-        (status = 400, description = "Invalid input", body = String),
-        (status = 401, description = "Invalid credentials", body = String),
-        (status = 403, description = "Invalid credentials", body = String),
+        (status = 400, description = "Invalid input", body = ErrorReponse),
+        (status = 401, description = "Invalid credentials", body = ErrorReponse),
+        (status = 403, description = "Invalid credentials", body = ErrorReponse),
     ),
     request_body(
         content = ChangePasswordInput,

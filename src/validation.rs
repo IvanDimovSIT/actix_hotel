@@ -1,7 +1,7 @@
-use actix_web::{body::BoxBody, HttpResponse};
+use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
 use regex::Regex;
 
-use crate::util::require_some;
+use crate::services::error_response;
 
 pub trait Validate {
     fn validate(&self, validator: &Validator) -> Result<(), HttpResponse<BoxBody>>;
@@ -30,7 +30,10 @@ impl Validator {
             return Ok(());
         }
 
-        Err(HttpResponse::BadRequest().body(format!("Invalid email: {}", email)))
+        Err(error_response(
+            format!("Invalid email: {}", email),
+            StatusCode::BAD_REQUEST,
+        ))
     }
 
     pub fn validate_password(&self, password: &str) -> Result<(), HttpResponse<BoxBody>> {
@@ -38,16 +41,21 @@ impl Validator {
             return Ok(());
         }
 
-        Err(HttpResponse::BadRequest().body("Invalid password: Needs to be between 8 and 20 characters (letters, numbers and symbols)"))
+        Err(error_response(
+                "Invalid password: Needs to be between 8 and 20 characters (letters, numbers and symbols)".to_string(),
+                StatusCode::BAD_REQUEST
+            )
+        )
     }
 
     pub fn validate_room_number(&self, room_number: &str) -> Result<(), HttpResponse<BoxBody>> {
         if self.room_number_regex.is_match(room_number) {
             return Ok(());
         }
-
-        Err(HttpResponse::BadRequest().body(
-            "Invalid room number: Needs to be numbers optionally followed by an upper case letter",
+        Err(error_response(
+            "Invalid room number: Needs to be numbers optionally followed by an upper case letter"
+                .to_string(),
+            StatusCode::BAD_REQUEST,
         ))
     }
 
@@ -60,6 +68,9 @@ impl Validator {
             return Ok(());
         }
 
-        Err(HttpResponse::BadRequest().body(format!("No input for '{}'", field_name)))
+        Err(error_response(
+            format!("No input for '{}'", field_name),
+            StatusCode::BAD_REQUEST,
+        ))
     }
 }

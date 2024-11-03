@@ -10,14 +10,14 @@ use crate::{
     app_state::AppState,
     persistence::user::Role,
     security::decode_claims,
-    services::add_room::add_room,
+    services::{add_room::add_room, ErrorReponse},
     validation::Validate,
 };
 
 #[derive(OpenApi)]
 #[openapi(
     paths(add_room_controller),
-    components(schemas(BedInput, AddRoomInput, AddRoomOutput))
+    components(schemas(ErrorReponse, BedInput, AddRoomInput, AddRoomOutput))
 )]
 pub struct RoomApiDoc;
 
@@ -28,9 +28,9 @@ pub fn config(cfg: &mut ServiceConfig) {
 #[utoipa::path(
     responses(
         (status = 201, description = "Successfully added room", body = AddRoomOutput),
-        (status = 400, description = "Invalid input", body = String),
-        (status = 401, description = "Invalid credentials", body = String),
-        (status = 403, description = "Invalid credentials", body = String),
+        (status = 400, description = "Invalid input", body = ErrorReponse),
+        (status = 401, description = "Invalid credentials", body = ErrorReponse),
+        (status = 403, description = "Invalid credentials", body = ErrorReponse),
     ),
     request_body(
         content = AddRoomInput,

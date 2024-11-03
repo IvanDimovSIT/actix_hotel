@@ -8,13 +8,15 @@ use crate::{
     util::{create_token_from_user, require_some},
 };
 
+use super::error_to_response;
+
 async fn find_user(
     app_state: &AppState,
     input: &RefreshTokenInput,
 ) -> Result<Model, HttpResponse<BoxBody>> {
     let result_find_user = find_user_by_id(&app_state.db, &input.claims.user_id).await;
     if let Err(err) = result_find_user {
-        return Err(HttpResponse::from_error(err));
+        return Err(error_to_response(err));
     }
     let option_find_user = result_find_user.unwrap();
     let user = require_some(
