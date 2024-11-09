@@ -8,7 +8,7 @@ use crate::{
         handle_db_error,
         user::{self, find_user_by_email},
     },
-    security::{generate_salt, hash_with_salt},
+    security::hash_password,
 };
 
 use super::{error_response, error_to_response, serialize_output};
@@ -29,13 +29,11 @@ pub async fn register_user(
         );
     }
 
-    let salt = generate_salt();
-    let password = hash_with_salt(&input.password, &salt);
+    let password = hash_password(&input.password);
 
     let user_to_save = user::ActiveModel {
         id: ActiveValue::Set(Uuid::new_v4()),
         email: ActiveValue::Set(input.email.clone()),
-        salt: ActiveValue::Set(salt),
         password: ActiveValue::Set(password),
         role: ActiveValue::Set(user::Role::User),
     };

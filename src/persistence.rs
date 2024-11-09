@@ -1,12 +1,7 @@
-use actix_web::{
-    body::BoxBody,
-    http::{header::ContentType, StatusCode},
-    HttpResponse,
-};
-use env_logger::Logger;
+use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
+use log::info;
 use sea_orm::{
-    ActiveModelTrait, ActiveValue, ConnectionTrait, DatabaseBackend, DatabaseConnection, DbErr,
-    EntityTrait, Schema,
+    ActiveModelTrait, ActiveValue, ConnectionTrait, DatabaseConnection, DbErr, EntityTrait, Schema,
 };
 use user::find_user_by_email;
 use uuid::Uuid;
@@ -14,7 +9,7 @@ use uuid::Uuid;
 use crate::{
     app_state::EnvironmentVariables,
     constants::{ENV_INITIAL_ADMIN_EMAIL, ENV_INITIAL_ADMIN_PASSWORD},
-    security::{generate_salt, hash_with_salt},
+    security::hash_password,
     services::error_response,
 };
 
@@ -88,13 +83,11 @@ async fn initialise_admin(db: &DatabaseConnection, env: &EnvironmentVariables) {
     }
 
     let raw_password = env.get(ENV_INITIAL_ADMIN_PASSWORD);
-    let salt = generate_salt();
-    let password = hash_with_salt(&raw_password, &salt);
+    let password = hash_password(&raw_password);
 
     let intital_user = user::ActiveModel {
         id: ActiveValue::Set(Uuid::new_v4()),
         email: ActiveValue::Set(email.clone()),
-        salt: ActiveValue::Set(salt),
         password: ActiveValue::Set(password),
         role: ActiveValue::Set(user::Role::Admin),
     };
@@ -104,7 +97,7 @@ async fn initialise_admin(db: &DatabaseConnection, env: &EnvironmentVariables) {
         .await
         .expect("Error inserting initial admin user into database");
 
-    println!("Initilised admin user with email: '{email}' and password: '{raw_password}' (change password immediately)");
+    info!("Initilised admin user with email: '{email}' and password: '{raw_password}' (change password immediately)");
 }
 
 async fn intitialise_table<E>(db: &DatabaseConnection, entity: E)

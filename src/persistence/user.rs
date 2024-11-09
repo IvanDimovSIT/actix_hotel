@@ -21,9 +21,9 @@ use uuid::Uuid;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
-    #[sea_orm(unique)]
+    #[sea_orm(unique, db_type = "String(StringLen::N(255))")]
     pub email: String,
-    pub salt: String,
+    #[sea_orm(db_type = "String(StringLen::N(255))")]
     pub password: String,
     pub role: Role,
 }

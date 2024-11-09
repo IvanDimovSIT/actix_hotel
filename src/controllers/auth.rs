@@ -81,7 +81,7 @@ pub async fn register_controller(
 
 #[utoipa::path(
     responses(
-        (status = 200, description = "Successful Registration", body = LoginOutput),
+        (status = 200, description = "Successfully logged in", body = LoginOutput),
         (status = 400, description = "Invalid input", body = ErrorReponse),
         (status = 401, description = "Invalid credentials", body = ErrorReponse)
     ),

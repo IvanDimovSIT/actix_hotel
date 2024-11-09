@@ -1,5 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
+use log::info;
 use sea_orm::{Database, DatabaseConnection};
 
 use crate::{
@@ -78,6 +79,6 @@ async fn load_databse(env: &EnvironmentVariables) -> DatabaseConnection {
         .expect("Failed to connect to database");
 
     initialise_db(&db, &env).await;
-    println!("Database initilised");
+    info!("Database initilised");
     db
 }

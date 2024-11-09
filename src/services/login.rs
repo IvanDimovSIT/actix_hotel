@@ -41,7 +41,7 @@ pub async fn login(app_state: &AppState, input: &LoginInput) -> HttpResponse<Box
     }
 
     let user = result_find_user.unwrap();
-    if !passwords_match(&input.password, &user.salt, &user.password) {
+    if !passwords_match(&input.password, &user.password) {
         return error_response(INVALID_CREDENTIALS.to_string(), StatusCode::UNAUTHORIZED);
     }
 

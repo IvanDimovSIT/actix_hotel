@@ -1,19 +1,17 @@
 use std::error::Error;
 
 use actix_web::{body::BoxBody, HttpRequest, HttpResponse};
+use bcrypt::{hash, verify};
 use jsonwebtoken::{
     decode, encode, get_current_timestamp, Algorithm, DecodingKey, EncodingKey, Header, Validation,
 };
-use rand::{distributions::Alphanumeric, Rng};
-use sea_orm::sea_query::token;
 use serde::{Deserialize, Serialize};
-use sha256::digest;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
-    app_state::{self, AppState},
-    constants::{BEARER_PREFIX, SALT_LENGTH},
+    app_state::AppState,
+    constants::{BCRYPT_COST, BEARER_PREFIX},
     persistence::user::Role,
 };
 
@@ -55,20 +53,12 @@ impl Claims {
     }
 }
 
-pub fn hash_with_salt(password: &str, salt: &str) -> String {
-    digest(password.to_string() + salt)
+pub fn hash_password(password: &str) -> String {
+    hash(password, BCRYPT_COST).expect("Error hashing password")
 }
 
-pub fn passwords_match(raw_password: &str, salt: &str, password_hash: &str) -> bool {
-    hash_with_salt(raw_password, salt) == password_hash
-}
-
-pub fn generate_salt() -> String {
-    rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(SALT_LENGTH)
-        .map(char::from)
-        .collect()
+pub fn passwords_match(raw_password: &str, password_hash: &str) -> bool {
+    verify(raw_password, password_hash).expect("Error verifying password")
 }
 
 pub fn decode_claims(
@@ -105,5 +95,43 @@ pub fn decode_claims(
         Ok(claims)
     } else {
         Err(HttpResponse::Forbidden().body("Insufficient access"))
+    }
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    fn test_password_hashing_match() {
+        let raw_password = "mypassword1".to_string();
+        let hashed_password = hash_password(&raw_password);
+
+        assert!(passwords_match(&raw_password, &hashed_password));
+    }
+
+    #[test]
+    fn test_password_hashing_wrong_password() {
+        let raw_password = "mypassword1".to_string();
+        let invalid_password = "Mypassword1".to_string();
+        let hashed_password = hash_password(&raw_password);
+
+        assert!(!passwords_match(&invalid_password, &hashed_password));
+    }
+
+    #[test]
+    fn test_password_hashing_empty() {
+        let raw_password = "".to_string();
+        let hashed_password = hash_password(&raw_password);
+
+        assert!(passwords_match(&raw_password, &hashed_password));
+    }
+
+    #[test]
+    fn test_password_hashing_long() {
+        let raw_password = "a".repeat(256).to_string();
+        let hashed_password = hash_password(&raw_password);
+
+        assert!(passwords_match(&raw_password, &hashed_password));
     }
 }

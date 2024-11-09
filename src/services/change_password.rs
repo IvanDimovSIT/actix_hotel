@@ -8,7 +8,7 @@ use crate::{
         handle_db_error,
         user::{self, find_user_by_id},
     },
-    security::{generate_salt, hash_with_salt, passwords_match},
+    security::{hash_password, passwords_match},
     util::require_some,
 };
 
@@ -36,11 +36,9 @@ async fn save_new_user(
     user: user::Model,
     input: &ChangePasswordInput,
 ) -> Result<(), HttpResponse<BoxBody>> {
-    let new_salt = generate_salt();
-    let new_password = hash_with_salt(&input.new_password, &new_salt);
+    let new_password = hash_password(&input.new_password);
 
     let mut active_user = user.into_active_model();
-    active_user.salt = ActiveValue::set(new_salt);
     active_user.password = ActiveValue::set(new_password);
     let result = active_user.update(app_state.db.as_ref()).await;
     if let Err(err) = result {
@@ -59,7 +57,7 @@ pub async fn change_password(
         return err;
     }
     let user = result_find_user.unwrap();
-    if !passwords_match(&input.old_password, &user.salt, &user.password) {
+    if !passwords_match(&input.old_password, &user.password) {
         return error_response("Invalid credentials".to_string(), StatusCode::UNAUTHORIZED);
     }
 

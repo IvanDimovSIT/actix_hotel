@@ -74,3 +74,46 @@ impl Validator {
         ))
     }
 }
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_email() {
+        let validator = Validator::new();
+        let valid_email = "myemail123@example.com";
+        let invalid_email = "invalidemail@";
+        assert!(validator.validate_email(valid_email).is_ok());
+        assert!(validator.validate_email(invalid_email).is_err());
+    }
+
+    #[test]
+    fn test_validate_password() {
+        let validator = Validator::new();
+        let valid_password = "MyPassword";
+        let invalid_password = "abc";
+        assert!(validator.validate_password(valid_password).is_ok());
+        assert!(validator.validate_password(invalid_password).is_err());
+    }
+
+    #[test]
+    fn test_validate_room_number() {
+        let validator = Validator::new();
+        let valid_room_number = "132B";
+        let invalid_room_number = "number";
+        assert!(validator.validate_room_number(valid_room_number).is_ok());
+        assert!(validator.validate_room_number(invalid_room_number).is_err());
+    }
+
+    #[test]
+    fn test_validate_option() {
+        let validator = Validator::new();
+        let valid_option = Some("some");
+        let invalid_option: Option<&str> = None;
+        assert!(validator.validate_option(&valid_option, "option").is_ok());
+        assert!(validator
+            .validate_option(&invalid_option, "option")
+            .is_err());
+    }
+}
