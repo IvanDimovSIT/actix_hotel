@@ -17,6 +17,7 @@ pub mod room;
     auth::promote_controller,
     auth::refresh_token_controller,
     auth::change_password_controller,
+    auth::send_otp_controller,
     room::add_room_controller
 ))]
 pub struct ApiDoc;

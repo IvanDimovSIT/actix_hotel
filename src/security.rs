@@ -5,13 +5,14 @@ use bcrypt::{hash, verify};
 use jsonwebtoken::{
     decode, encode, get_current_timestamp, Algorithm, DecodingKey, EncodingKey, Header, Validation,
 };
+use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
     app_state::AppState,
-    constants::{BCRYPT_COST, BEARER_PREFIX},
+    constants::{BCRYPT_COST, BEARER_PREFIX, OTP_LENGTH},
     persistence::user::Role,
 };
 
@@ -59,6 +60,14 @@ pub fn hash_password(password: &str) -> String {
 
 pub fn passwords_match(raw_password: &str, password_hash: &str) -> bool {
     verify(raw_password, password_hash).expect("Error verifying password")
+}
+
+pub fn generate_otp() -> String {
+    rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(OTP_LENGTH)
+        .map(char::from)
+        .collect()
 }
 
 pub fn decode_claims(

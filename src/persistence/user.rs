@@ -41,7 +41,10 @@ pub enum Role {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(has_one = "super::one_time_password::Entity")]
+    OneTimePassword,
+}
 impl ActiveModelBehavior for ActiveModel {}
 
 pub async fn find_user_by_email(

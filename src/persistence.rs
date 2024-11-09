@@ -14,6 +14,7 @@ use crate::{
 };
 
 pub mod bed;
+pub mod one_time_password;
 pub mod room;
 pub mod user;
 
@@ -117,6 +118,7 @@ pub async fn initialise_db(db: &DatabaseConnection, env: &EnvironmentVariables) 
     intitialise_table(db, user::Entity).await;
     intitialise_table(db, room::Entity).await;
     intitialise_table(db, bed::Entity).await;
+    intitialise_table(db, one_time_password::Entity).await;
 
     initialise_admin(db, env).await;
 }

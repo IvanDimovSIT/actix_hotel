@@ -4,7 +4,7 @@ use log::info;
 use sea_orm::{Database, DatabaseConnection};
 
 use crate::{
-    constants::{ENV_DATABASE_URL, ENV_JWT_SECRET, ENV_JWT_VALIDITY_SECS},
+    constants::{ENV_DATABASE_URL, ENV_JWT_SECRET, ENV_JWT_VALIDITY_SECS, ENV_OTP_VALIDITY_SECS},
     persistence::initialise_db,
     validation::Validator,
 };
@@ -32,18 +32,24 @@ impl EnvironmentVariables {
 pub struct SecurityInfo {
     pub jwt_secret: String,
     pub jwt_validity: u64,
+    pub otp_validity: u64,
 }
 impl SecurityInfo {
     fn new(env: &EnvironmentVariables) -> Self {
         let jwt_secret = env.get(ENV_JWT_SECRET).to_string();
         let jwt_validity = env.get(ENV_JWT_VALIDITY_SECS).parse().expect(&format!(
-            "Invalid number format for {}",
-            ENV_JWT_VALIDITY_SECS
+            "Invalid number format for {ENV_JWT_VALIDITY_SECS}"
         ));
+
+        let otp_validity = env
+            .get(ENV_OTP_VALIDITY_SECS)
+            .parse()
+            .expect(&format!("Invalid number format for {ENV_OTP_VALIDITY_SECS}"));
 
         Self {
             jwt_secret,
             jwt_validity,
+            otp_validity,
         }
     }
 }

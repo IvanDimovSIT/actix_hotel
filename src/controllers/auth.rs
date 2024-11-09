@@ -12,13 +12,15 @@ use crate::{
         promote::{PromoteInput, PromoteOutput},
         refresh_token::{RefreshTokenInput, RefreshTokenOutput},
         register_user::{RegisterUserInput, RegisterUserOutput},
+        send_otp::{SendOtpInput, SendOtpOutput},
     },
     app_state::AppState,
     persistence::user::Role,
     security::{decode_claims, Claims},
     services::{
         change_password::change_password, login::login, promote::promote,
-        refresh_token::refresh_token, register_user::register_user, ErrorReponse,
+        refresh_token::refresh_token, register_user::register_user, send_otp::send_otp,
+        ErrorReponse,
     },
     validation::Validate,
 };
@@ -29,7 +31,8 @@ use crate::{
         register_controller,
         login_controller,
         refresh_token_controller,
-        change_password_controller
+        change_password_controller,
+        send_otp_controller
     ),
     components(schemas(
         ErrorReponse,
@@ -42,7 +45,9 @@ use crate::{
         PromoteOutput,
         RefreshTokenOutput,
         ChangePasswordInput,
-        ChangePasswordOutput
+        ChangePasswordOutput,
+        SendOtpInput,
+        SendOtpOutput
     ))
 )]
 pub struct AuthApiDoc;
@@ -53,6 +58,7 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(promote_controller);
     cfg.service(refresh_token_controller);
     cfg.service(change_password_controller);
+    cfg.service(send_otp_controller);
 }
 
 #[utoipa::path(
@@ -193,4 +199,29 @@ pub async fn change_password_controller(
     }
 
     change_password(&state, &change_password_input).await
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Successfully changed password", body = ChangePasswordOutput),
+        (status = 400, description = "Invalid input", body = ErrorReponse),
+        (status = 404, description = "Invalid email", body = ErrorReponse),
+    ),
+    request_body(
+        content = SendOtpInput,
+        description = "User email",
+        content_type = "application/json"
+    )
+)]
+#[post("/auth/send-otp")]
+pub async fn send_otp_controller(
+    state: Data<AppState>,
+    input: Json<SendOtpInput>,
+) -> impl Responder {
+    let send_otp_input = input.into_inner();
+    if let Err(err) = send_otp_input.validate(&state.validator) {
+        return err;
+    }
+
+    send_otp(&state, &send_otp_input).await
 }
