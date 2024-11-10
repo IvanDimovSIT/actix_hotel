@@ -4,9 +4,7 @@ use log::info;
 use sea_orm::{Database, DatabaseConnection};
 
 use crate::{
-    constants::{ENV_DATABASE_URL, ENV_JWT_SECRET, ENV_JWT_VALIDITY_SECS, ENV_OTP_VALIDITY_SECS},
-    persistence::initialise_db,
-    validation::Validator,
+    constants::{ENV_DATABASE_URL, ENV_JWT_SECRET, ENV_JWT_VALIDITY_SECS, ENV_OTP_VALIDITY_SECS}, persistence::initialise_db, services::email_service::MailService, validation::Validator
 };
 
 pub struct EnvironmentVariables {
@@ -41,10 +39,9 @@ impl SecurityInfo {
             "Invalid number format for {ENV_JWT_VALIDITY_SECS}"
         ));
 
-        let otp_validity = env
-            .get(ENV_OTP_VALIDITY_SECS)
-            .parse()
-            .expect(&format!("Invalid number format for {ENV_OTP_VALIDITY_SECS}"));
+        let otp_validity = env.get(ENV_OTP_VALIDITY_SECS).parse().expect(&format!(
+            "Invalid number format for {ENV_OTP_VALIDITY_SECS}"
+        ));
 
         Self {
             jwt_secret,
@@ -57,20 +54,21 @@ impl SecurityInfo {
 #[derive(Clone)]
 pub struct AppState {
     pub db: Arc<DatabaseConnection>,
-    pub env: Arc<EnvironmentVariables>,
     pub validator: Arc<Validator>,
     pub security_info: Arc<SecurityInfo>,
+    pub mail_service: Arc<MailService>
 }
 impl AppState {
     pub async fn load() -> Self {
         let env = EnvironmentVariables::load();
         let security_info = SecurityInfo::new(&env);
+        let mail_service = MailService::new(&env);
 
         let state = Self {
             db: Arc::new(load_databse(&env).await),
-            env: Arc::new(env),
             validator: Arc::new(Validator::new()),
             security_info: Arc::new(security_info),
+            mail_service: Arc::new(mail_service)
         };
 
         state

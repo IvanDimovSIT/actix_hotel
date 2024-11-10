@@ -47,9 +47,9 @@ pub async fn delete_all_for_user(
     user_id: &Uuid,
 ) -> Result<u64, Box<dyn Error>> {
     let result = crate::persistence::one_time_password::Entity::delete_many()
-       .filter(crate::persistence::one_time_password::Column::UserId.eq(*user_id))
-       .exec(db)
-       .await?;
-    
+        .filter(crate::persistence::one_time_password::Column::UserId.eq(*user_id))
+        .exec(db)
+        .await?;
+
     Ok(result.rows_affected)
 }

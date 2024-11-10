@@ -10,6 +10,7 @@ use utoipa::ToSchema;
 
 pub mod add_room;
 pub mod change_password;
+pub mod email_service;
 pub mod hello_world;
 pub mod login;
 pub mod promote;

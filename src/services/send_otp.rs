@@ -62,6 +62,21 @@ async fn create_otp(app_state: &AppState, user: &user::Model) -> Result<String, 
     Ok(otp_code)
 }
 
+async fn send_email(app_state: &AppState, user: &user::Model, otp_code: &str) -> Result<(), HttpResponse<BoxBody>> {
+    let body = format!("Password reset code: '{otp_code}'");
+    let send_email_result = app_state.mail_service.send_text_mail(
+        user.email.to_string(),
+        "Reset password code".to_string(),
+        body
+    ).await;
+
+    if let Err(err) = send_email_result {
+        return Err(error_to_response(err));
+    }
+
+    Ok(())
+}
+
 pub async fn send_otp(app_state: &AppState, input: &SendOtpInput) -> HttpResponse<BoxBody> {
     let find_user_result = find_user(app_state, input).await;
     if let Err(err) = find_user_result {
@@ -75,8 +90,10 @@ pub async fn send_otp(app_state: &AppState, input: &SendOtpInput) -> HttpRespons
     }
     let otp_code = otp_result.unwrap();
 
-    //TODO: Send otp email for user
-    error!("Sending emails not implemented! OTP:'{otp_code}'");
-
+    let send_mail_result = send_email(app_state, &user, &otp_code).await;
+    if let Err(err) = send_mail_result {
+        return err;
+    }
+    
     serialize_output(&SendOtpOutput, StatusCode::OK)
 }
