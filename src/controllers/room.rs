@@ -8,7 +8,7 @@ use utoipa::OpenApi;
 use crate::{
     api::add_room::{AddRoomInput, AddRoomOutput, BedInput},
     app_state::AppState,
-    persistence::user::Role,
+    persistence::{bed::BedSize, room::BathroomType, user::Role},
     security::decode_claims,
     services::{add_room::add_room, ErrorReponse},
     validation::Validate,
@@ -17,7 +17,14 @@ use crate::{
 #[derive(OpenApi)]
 #[openapi(
     paths(add_room_controller),
-    components(schemas(ErrorReponse, BedInput, AddRoomInput, AddRoomOutput))
+    components(schemas(
+        ErrorReponse,
+        BedInput,
+        AddRoomInput,
+        AddRoomOutput,
+        BathroomType,
+        BedSize
+    ))
 )]
 pub struct RoomApiDoc;
 

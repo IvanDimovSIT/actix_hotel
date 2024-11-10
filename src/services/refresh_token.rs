@@ -14,7 +14,7 @@ async fn find_user(
     app_state: &AppState,
     input: &RefreshTokenInput,
 ) -> Result<Model, HttpResponse<BoxBody>> {
-    let result_find_user = find_user_by_id(&app_state.db, &input.claims.user_id).await;
+    let result_find_user = find_user_by_id(app_state.db.as_ref(), &input.claims.user_id).await;
     if let Err(err) = result_find_user {
         return Err(error_to_response(err));
     }

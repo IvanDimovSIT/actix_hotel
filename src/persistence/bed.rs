@@ -7,10 +7,21 @@ use sea_orm::RelationDef;
 use sea_orm::RelationTrait;
 use sea_orm::{ActiveModelBehavior, DeriveActiveEnum, DeriveEntityModel, DeriveRelation, EnumIter};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 #[derive(
-    Clone, Debug, PartialEq, Eq, Default, EnumIter, DeriveActiveEnum, Serialize, Deserialize, Hash,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Default,
+    EnumIter,
+    DeriveActiveEnum,
+    Serialize,
+    Deserialize,
+    Hash,
+    ToSchema,
 )]
 #[sea_orm(rs_type = "String", db_type = "String(StringLen::N(16))")]
 pub enum BedSize {

@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use actix_web::{body::BoxBody, HttpRequest, HttpResponse};
+use actix_web::{body::BoxBody, http::StatusCode, HttpRequest, HttpResponse};
 use bcrypt::{hash, verify};
 use jsonwebtoken::{
     decode, encode, get_current_timestamp, Algorithm, DecodingKey, EncodingKey, Header, Validation,
@@ -14,6 +14,7 @@ use crate::{
     app_state::AppState,
     constants::{BCRYPT_COST, BEARER_PREFIX, OTP_LENGTH},
     persistence::user::Role,
+    services::{error_response, error_to_response},
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
@@ -81,21 +82,30 @@ pub fn decode_claims(
         .and_then(|h| h.to_str().ok());
 
     if auth_header_option.is_none() {
-        return Err(HttpResponse::Unauthorized().body("Not authenticated: missing JWT"));
+        return Err(error_response(
+            "Not authenticated: missing JWT".to_string(),
+            StatusCode::UNAUTHORIZED,
+        ));
     }
     let auth_header = auth_header_option.unwrap();
     if !auth_header.starts_with(BEARER_PREFIX) {
-        return Err(HttpResponse::Unauthorized().body("Not authenticated: invalid JWT format"));
+        return Err(error_response(
+            "Not authenticated: invalid JWT format".to_string(),
+            StatusCode::UNAUTHORIZED,
+        ));
     }
 
     let decoded = Claims::from_token(auth_header.strip_prefix(BEARER_PREFIX).unwrap(), app_state);
     if let Err(err) = decoded {
-        return Err(HttpResponse::from_error(err));
+        return Err(error_to_response(err));
     }
 
     let claims = decoded.unwrap();
     if claims.exp < get_current_timestamp() {
-        return Err(HttpResponse::Unauthorized().body("Not authenticated: expired JWT"));
+        return Err(error_response(
+            "Not authenticated: expired JWT".to_string(),
+            StatusCode::UNAUTHORIZED,
+        ));
     }
 
     let has_role = roles.iter().any(|role| *role == claims.role);
@@ -103,7 +113,10 @@ pub fn decode_claims(
     if has_role {
         Ok(claims)
     } else {
-        Err(HttpResponse::Forbidden().body("Insufficient access"))
+        Err(error_response(
+            "Insufficient access".to_string(),
+            StatusCode::FORBIDDEN,
+        ))
     }
 }
 

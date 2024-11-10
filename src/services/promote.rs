@@ -4,36 +4,14 @@ use sea_orm::{ActiveModelTrait, ActiveValue, IntoActiveModel};
 use crate::{
     api::promote::{PromoteInput, PromoteOutput},
     app_state::AppState,
-    persistence::{
-        handle_db_error,
-        user::{find_user_by_email, Model, Role},
-    },
-    util::require_some,
+    persistence::{handle_db_error, user::Role},
+    util::find_user,
 };
 
-use super::{error_to_response, serialize_output};
-
-async fn find_user(
-    app_state: &AppState,
-    input: &PromoteInput,
-) -> Result<Model, HttpResponse<BoxBody>> {
-    let result_find_user = find_user_by_email(&app_state.db, &input.email).await;
-    if let Err(err) = result_find_user {
-        return Err(error_to_response(err));
-    }
-
-    let option_find_user = result_find_user.unwrap();
-    let user = require_some(
-        option_find_user,
-        || format!("User with email '{}' not found", input.email),
-        StatusCode::NOT_FOUND,
-    )?;
-
-    Ok(user)
-}
+use super::serialize_output;
 
 pub async fn promote(app_state: &AppState, input: &PromoteInput) -> HttpResponse<BoxBody> {
-    let found_user = find_user(app_state, input).await;
+    let found_user = find_user(app_state, &input.email).await;
     if let Err(err) = found_user {
         return err;
     }

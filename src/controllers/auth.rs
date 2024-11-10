@@ -12,6 +12,7 @@ use crate::{
         promote::{PromoteInput, PromoteOutput},
         refresh_token::{RefreshTokenInput, RefreshTokenOutput},
         register_user::{RegisterUserInput, RegisterUserOutput},
+        reset_password::{ResetPasswordInput, ResetPasswordOutput},
         send_otp::{SendOtpInput, SendOtpOutput},
     },
     app_state::AppState,
@@ -19,8 +20,8 @@ use crate::{
     security::{decode_claims, Claims},
     services::{
         change_password::change_password, login::login, promote::promote,
-        refresh_token::refresh_token, register_user::register_user, send_otp::send_otp,
-        ErrorReponse,
+        refresh_token::refresh_token, register_user::register_user, reset_password::reset_password,
+        send_otp::send_otp, ErrorReponse,
     },
     validation::Validate,
 };
@@ -32,7 +33,8 @@ use crate::{
         login_controller,
         refresh_token_controller,
         change_password_controller,
-        send_otp_controller
+        send_otp_controller,
+        reset_password_controller
     ),
     components(schemas(
         ErrorReponse,
@@ -47,7 +49,9 @@ use crate::{
         ChangePasswordInput,
         ChangePasswordOutput,
         SendOtpInput,
-        SendOtpOutput
+        SendOtpOutput,
+        ResetPasswordInput,
+        ResetPasswordOutput
     ))
 )]
 pub struct AuthApiDoc;
@@ -59,6 +63,7 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(refresh_token_controller);
     cfg.service(change_password_controller);
     cfg.service(send_otp_controller);
+    cfg.service(reset_password_controller);
 }
 
 #[utoipa::path(
@@ -224,4 +229,29 @@ pub async fn send_otp_controller(
     }
 
     send_otp(&state, &send_otp_input).await
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Successfully reset password", body = ResetPasswordOutput),
+        (status = 400, description = "Invalid input", body = ErrorReponse),
+        (status = 404, description = "Invalid email", body = ErrorReponse),
+    ),
+    request_body(
+        content = ResetPasswordInput,
+        description = "Reset password data",
+        content_type = "application/json"
+    )
+)]
+#[post("/auth/reset-password")]
+pub async fn reset_password_controller(
+    state: Data<AppState>,
+    input: Json<ResetPasswordInput>,
+) -> impl Responder {
+    let reset_password_input = input.into_inner();
+    if let Err(err) = reset_password_input.validate(&state.validator) {
+        return err;
+    }
+
+    reset_password(&state, &reset_password_input).await
 }

@@ -3,6 +3,7 @@ use std::error::Error;
 use sea_orm::prelude::StringLen;
 use sea_orm::ActiveModelBehavior;
 use sea_orm::ColumnTrait;
+use sea_orm::ConnectionTrait;
 use sea_orm::DatabaseConnection;
 use sea_orm::DeriveActiveEnum;
 use sea_orm::DeriveEntityModel;
@@ -59,10 +60,10 @@ pub async fn find_user_by_email(
     Ok(user)
 }
 
-pub async fn find_user_by_id(
-    db: &DatabaseConnection,
-    id: &Uuid,
-) -> Result<Option<Model>, Box<dyn Error>> {
+pub async fn find_user_by_id<T>(db: &T, id: &Uuid) -> Result<Option<Model>, Box<dyn Error>>
+where
+    T: ConnectionTrait,
+{
     Ok(crate::persistence::user::Entity::find_by_id(*id)
         .one(db)
         .await?)

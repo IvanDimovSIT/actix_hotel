@@ -18,7 +18,7 @@ async fn find_user(
     app_state: &AppState,
     input: &ChangePasswordInput,
 ) -> Result<user::Model, HttpResponse<BoxBody>> {
-    let find_user_result = find_user_by_id(&app_state.db, &input.user_id).await;
+    let find_user_result = find_user_by_id(app_state.db.as_ref(), &input.user_id).await;
     if let Err(err) = find_user_result {
         return Err(error_to_response(err));
     }

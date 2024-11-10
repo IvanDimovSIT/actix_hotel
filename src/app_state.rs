@@ -4,7 +4,10 @@ use log::info;
 use sea_orm::{Database, DatabaseConnection};
 
 use crate::{
-    constants::{ENV_DATABASE_URL, ENV_JWT_SECRET, ENV_JWT_VALIDITY_SECS, ENV_OTP_VALIDITY_SECS}, persistence::initialise_db, services::email_service::MailService, validation::Validator
+    constants::{ENV_DATABASE_URL, ENV_JWT_SECRET, ENV_JWT_VALIDITY_SECS, ENV_OTP_VALIDITY_SECS},
+    persistence::initialise_db,
+    services::email_service::MailService,
+    validation::Validator,
 };
 
 pub struct EnvironmentVariables {
@@ -56,7 +59,7 @@ pub struct AppState {
     pub db: Arc<DatabaseConnection>,
     pub validator: Arc<Validator>,
     pub security_info: Arc<SecurityInfo>,
-    pub mail_service: Arc<MailService>
+    pub mail_service: Arc<MailService>,
 }
 impl AppState {
     pub async fn load() -> Self {
@@ -68,7 +71,7 @@ impl AppState {
             db: Arc::new(load_databse(&env).await),
             validator: Arc::new(Validator::new()),
             security_info: Arc::new(security_info),
-            mail_service: Arc::new(mail_service)
+            mail_service: Arc::new(mail_service),
         };
 
         state
