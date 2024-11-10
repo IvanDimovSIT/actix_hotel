@@ -6,6 +6,8 @@ use uuid::Uuid;
 use crate::validation::{Validate, Validator};
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[schema(rename_all = "camelCase")]
 pub struct RegisterUserInput {
     #[schema(example = "user@example.com", required = true)]
     pub email: String,
@@ -22,6 +24,8 @@ impl Validate for RegisterUserInput {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[schema(rename_all = "camelCase")]
 pub struct RegisterUserOutput {
     pub user_id: Uuid,
 }

@@ -20,6 +20,8 @@ const MIN_PRICE: i64 = 1;
 const MAX_PRICE: i64 = 100_000_00;
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[schema(rename_all = "camelCase")]
 pub struct BedInput {
     #[schema(default = "Single", required = true)]
     pub bed_size: BedSize,
@@ -40,6 +42,8 @@ impl Validate for BedInput {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[schema(rename_all = "camelCase")]
 pub struct AddRoomInput {
     pub beds: Vec<BedInput>,
     #[schema(example = "5000", minimum = 1, maximum = 100_000_00, required = true)]
@@ -94,6 +98,8 @@ impl Validate for AddRoomInput {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[schema(rename_all = "camelCase")]
 pub struct AddRoomOutput {
     pub room_id: Uuid,
 }

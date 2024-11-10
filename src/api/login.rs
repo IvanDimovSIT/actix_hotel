@@ -5,6 +5,8 @@ use utoipa::{openapi::schema, ToSchema};
 use crate::validation::{Validate, Validator};
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[schema(rename_all = "camelCase")]
 pub struct LoginInput {
     #[schema(example = "user@example.com", required = true)]
     pub email: String,
@@ -22,6 +24,8 @@ impl Validate for LoginInput {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[schema(rename_all = "camelCase")]
 pub struct LoginOutput {
     pub token: String,
 }

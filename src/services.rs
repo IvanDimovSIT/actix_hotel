@@ -18,6 +18,8 @@ pub mod register_user;
 pub mod send_otp;
 
 #[derive(Debug, Clone, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[schema(rename_all = "camelCase")]
 pub struct ErrorReponse {
     error: String,
 }
