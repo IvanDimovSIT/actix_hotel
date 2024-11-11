@@ -6,11 +6,14 @@ use actix_web::{
 use utoipa::OpenApi;
 
 use crate::{
-    api::add_room::{AddRoomInput, AddRoomOutput, BedInput},
+    api::{
+        error_response::ErrorReponse,
+        room::add_room::{AddRoomInput, AddRoomOutput, BedInput},
+    },
     app_state::AppState,
     persistence::{bed::BedSize, room::BathroomType, user::Role},
     security::decode_claims,
-    services::{add_room::add_room, ErrorReponse},
+    services::room::add_room::add_room,
     validation::Validate,
 };
 

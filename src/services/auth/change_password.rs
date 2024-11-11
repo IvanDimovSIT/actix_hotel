@@ -2,17 +2,16 @@ use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
 use sea_orm::{ActiveModelTrait, ActiveValue, IntoActiveModel};
 
 use crate::{
-    api::change_password::{ChangePasswordInput, ChangePasswordOutput},
+    api::auth::change_password::{ChangePasswordInput, ChangePasswordOutput},
     app_state::AppState,
     persistence::{
         handle_db_error,
         user::{self, find_user_by_id},
     },
     security::{hash_password, passwords_match},
+    services::{error_response, error_to_response, serialize_output},
     util::require_some,
 };
-
-use super::{error_response, error_to_response, serialize_output};
 
 async fn find_user(
     app_state: &AppState,

@@ -1,14 +1,13 @@
 use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
 
 use crate::{
-    api::login::{LoginInput, LoginOutput},
+    api::auth::login::{LoginInput, LoginOutput},
     app_state::AppState,
     persistence::user::{find_user_by_email, Model},
     security::passwords_match,
+    services::{error_response, serialize_output},
     util::{create_token_from_user, require_some},
 };
-
-use super::{error_response, serialize_output};
 
 const INVALID_CREDENTIALS: &str = "Invalid credentials";
 

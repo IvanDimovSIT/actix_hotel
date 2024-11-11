@@ -5,7 +5,7 @@ use sea_orm::{
 };
 
 use crate::{
-    api::reset_password::{ResetPasswordInput, ResetPasswordOutput},
+    api::auth::reset_password::{ResetPasswordInput, ResetPasswordOutput},
     app_state::AppState,
     persistence::{
         handle_db_error,
@@ -13,11 +13,9 @@ use crate::{
         user,
     },
     security::hash_password,
-    services::{error_response, error_to_response},
+    services::{error_response, error_to_response, serialize_output},
     util::require_some,
 };
-
-use super::serialize_output;
 
 pub async fn find_user_with_otp(
     app_state: &AppState,

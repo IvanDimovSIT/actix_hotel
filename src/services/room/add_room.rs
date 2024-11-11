@@ -5,16 +5,14 @@ use sea_orm::{
 use uuid::Uuid;
 
 use crate::{
-    api::add_room::{AddRoomInput, AddRoomOutput, BedInput},
+    api::room::add_room::{AddRoomInput, AddRoomOutput, BedInput},
     app_state::AppState,
     persistence::{
         bed, handle_db_error,
         room::{self},
     },
-    services::serialize_output,
+    services::{error_response, error_to_response, serialize_output},
 };
-
-use super::{error_response, error_to_response};
 
 async fn check_room_number_not_used(
     db: &DatabaseConnection,

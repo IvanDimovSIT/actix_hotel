@@ -6,32 +6,20 @@ use actix_web::{
     HttpResponse,
 };
 use serde::Serialize;
-use utoipa::ToSchema;
 
-pub mod add_room;
-pub mod change_password;
+use crate::api::error_response::ErrorReponse;
+
+pub mod auth;
 pub mod email_service;
 pub mod hello_world;
-pub mod login;
-pub mod promote;
-pub mod refresh_token;
-pub mod register_user;
-pub mod reset_password;
-pub mod send_otp;
-
-#[derive(Debug, Clone, Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-#[schema(rename_all = "camelCase")]
-pub struct ErrorReponse {
-    error: String,
-}
+pub mod room;
 
 pub fn error_to_response(err: Box<dyn Error>) -> HttpResponse<BoxBody> {
     error_response(err.to_string(), StatusCode::INTERNAL_SERVER_ERROR)
 }
 
 pub fn error_response(body: String, status: StatusCode) -> HttpResponse<BoxBody> {
-    serialize_output(&ErrorReponse { error: body }, status)
+    serialize_output(&ErrorReponse::new(body), status)
 }
 
 fn serialize_output<T>(body: &T, status: StatusCode) -> HttpResponse<BoxBody>

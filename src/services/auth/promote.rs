@@ -2,13 +2,12 @@ use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
 use sea_orm::{ActiveModelTrait, ActiveValue, IntoActiveModel};
 
 use crate::{
-    api::promote::{PromoteInput, PromoteOutput},
+    api::auth::promote::{PromoteInput, PromoteOutput},
     app_state::AppState,
     persistence::{handle_db_error, user::Role},
+    services::serialize_output,
     util::find_user,
 };
-
-use super::serialize_output;
 
 pub async fn promote(app_state: &AppState, input: &PromoteInput) -> HttpResponse<BoxBody> {
     let found_user = find_user(app_state, &input.email).await;

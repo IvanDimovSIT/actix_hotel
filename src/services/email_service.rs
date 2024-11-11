@@ -11,11 +11,11 @@ use log::error;
 use crate::app_state::EnvironmentVariables;
 use crate::constants::{ENV_EMAIL_PASSWORD, ENV_EMAIL_RELAY, ENV_EMAIL_USERNAME};
 
-pub struct MailService {
+pub struct EmailService {
     email: Mailbox,
     mailer: AsyncSmtpTransport<Tokio1Executor>,
 }
-impl MailService {
+impl EmailService {
     pub fn new(env: &EnvironmentVariables) -> Self {
         let credentials = Credentials::new(
             env.get(ENV_EMAIL_USERNAME).to_string(),

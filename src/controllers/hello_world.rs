@@ -1,4 +1,4 @@
-use crate::services::{hello_world::hello_world, ErrorReponse};
+use crate::{api::error_response::ErrorReponse, services::hello_world::hello_world};
 use actix_web::{
     get,
     web::{Path, ServiceConfig},

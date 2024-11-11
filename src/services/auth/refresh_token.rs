@@ -1,14 +1,12 @@
 use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
 
 use crate::{
-    api::refresh_token::{RefreshTokenInput, RefreshTokenOutput},
+    api::auth::refresh_token::{RefreshTokenInput, RefreshTokenOutput},
     app_state::AppState,
     persistence::user::{find_user_by_id, Model},
-    services::serialize_output,
+    services::{error_to_response, serialize_output},
     util::{create_token_from_user, require_some},
 };
-
-use super::error_to_response;
 
 async fn find_user(
     app_state: &AppState,

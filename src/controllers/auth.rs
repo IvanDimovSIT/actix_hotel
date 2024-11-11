@@ -7,21 +7,24 @@ use utoipa::OpenApi;
 
 use crate::{
     api::{
-        change_password::{ChangePasswordInput, ChangePasswordOutput},
-        login::{LoginInput, LoginOutput},
-        promote::{PromoteInput, PromoteOutput},
-        refresh_token::{RefreshTokenInput, RefreshTokenOutput},
-        register_user::{RegisterUserInput, RegisterUserOutput},
-        reset_password::{ResetPasswordInput, ResetPasswordOutput},
-        send_otp::{SendOtpInput, SendOtpOutput},
+        auth::{
+            change_password::{ChangePasswordInput, ChangePasswordOutput},
+            login::{LoginInput, LoginOutput},
+            promote::{PromoteInput, PromoteOutput},
+            refresh_token::{RefreshTokenInput, RefreshTokenOutput},
+            register_user::{RegisterUserInput, RegisterUserOutput},
+            reset_password::{ResetPasswordInput, ResetPasswordOutput},
+            send_otp::{SendOtpInput, SendOtpOutput},
+        },
+        error_response::ErrorReponse,
     },
     app_state::AppState,
     persistence::user::Role,
     security::{decode_claims, Claims},
-    services::{
+    services::auth::{
         change_password::change_password, login::login, promote::promote,
         refresh_token::refresh_token, register_user::register_user, reset_password::reset_password,
-        send_otp::send_otp, ErrorReponse,
+        send_otp::send_otp,
     },
     validation::Validate,
 };
@@ -45,6 +48,7 @@ use crate::{
         LoginOutput,
         PromoteInput,
         PromoteOutput,
+        RefreshTokenInput,
         RefreshTokenOutput,
         ChangePasswordInput,
         ChangePasswordOutput,

@@ -6,7 +6,7 @@ use sea_orm::{Database, DatabaseConnection};
 use crate::{
     constants::{ENV_DATABASE_URL, ENV_JWT_SECRET, ENV_JWT_VALIDITY_SECS, ENV_OTP_VALIDITY_SECS},
     persistence::initialise_db,
-    services::email_service::MailService,
+    services::email_service::EmailService,
     validation::Validator,
 };
 
@@ -59,19 +59,19 @@ pub struct AppState {
     pub db: Arc<DatabaseConnection>,
     pub validator: Arc<Validator>,
     pub security_info: Arc<SecurityInfo>,
-    pub mail_service: Arc<MailService>,
+    pub email_service: Arc<EmailService>,
 }
 impl AppState {
     pub async fn load() -> Self {
         let env = EnvironmentVariables::load();
         let security_info = SecurityInfo::new(&env);
-        let mail_service = MailService::new(&env);
+        let email_service = EmailService::new(&env);
 
         let state = Self {
             db: Arc::new(load_databse(&env).await),
             validator: Arc::new(Validator::new()),
             security_info: Arc::new(security_info),
-            mail_service: Arc::new(mail_service),
+            email_service: Arc::new(email_service),
         };
 
         state

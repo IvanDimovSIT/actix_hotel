@@ -5,7 +5,7 @@ use sea_orm::{sqlx::types::chrono::Utc, ActiveModelTrait};
 use uuid::Uuid;
 
 use crate::{
-    api::send_otp::{SendOtpInput, SendOtpOutput},
+    api::auth::send_otp::{SendOtpInput, SendOtpOutput},
     app_state::AppState,
     persistence::{
         handle_db_error,
@@ -13,10 +13,9 @@ use crate::{
         user::{self},
     },
     security::generate_otp,
+    services::{error_to_response, serialize_output},
     util::find_user,
 };
-
-use super::{error_to_response, serialize_output};
 
 async fn create_otp(app_state: &AppState, user: &user::Model) -> Result<String, HttpResponse> {
     if let Err(err) = one_time_password::delete_all_for_user(app_state.db.as_ref(), &user.id).await
@@ -47,7 +46,7 @@ async fn send_email(
 ) -> Result<(), HttpResponse<BoxBody>> {
     let body = format!("Password reset code: '{otp_code}'");
     let send_email_result = app_state
-        .mail_service
+        .email_service
         .send_text_mail(
             user.email.to_string(),
             "Reset password code".to_string(),

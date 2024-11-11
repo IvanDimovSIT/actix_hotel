@@ -3,15 +3,14 @@ use sea_orm::{ActiveModelTrait, ActiveValue, DatabaseConnection};
 use uuid::Uuid;
 
 use crate::{
-    api::register_user::{RegisterUserInput, RegisterUserOutput},
+    api::auth::register_user::{RegisterUserInput, RegisterUserOutput},
     persistence::{
         handle_db_error,
         user::{self, find_user_by_email},
     },
     security::hash_password,
+    services::{error_response, error_to_response, serialize_output},
 };
-
-use super::{error_response, error_to_response, serialize_output};
 
 pub async fn register_user(
     db: &DatabaseConnection,
