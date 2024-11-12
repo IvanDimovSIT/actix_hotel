@@ -121,7 +121,7 @@ pub fn decode_claims(
 }
 
 #[cfg(test)]
-pub mod tests {
+mod tests {
     use super::*;
 
     #[test]

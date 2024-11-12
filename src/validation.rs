@@ -139,7 +139,7 @@ impl Validator {
 }
 
 #[cfg(test)]
-pub mod tests {
+mod tests {
     use crate::security::generate_otp;
 
     use super::*;
