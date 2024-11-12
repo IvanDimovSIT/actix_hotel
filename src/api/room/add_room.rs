@@ -10,36 +10,14 @@ use crate::{
     validation::{Validate, Validator},
 };
 
-const MIN_BED_COUNT: i16 = 1;
-const MAX_BED_COUNT: i16 = 10;
+use super::BedInput;
+
 
 const MIN_FLOOR: i16 = 1;
 const MAX_FLOOR: i16 = 100;
 
 const MIN_PRICE: i64 = 1;
 const MAX_PRICE: i64 = 100_000_00;
-
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-#[schema(rename_all = "camelCase")]
-pub struct BedInput {
-    #[schema(default = "Single", required = true)]
-    pub bed_size: BedSize,
-    #[schema(example = "2", minimum = 1, maximum = 10, required = true)]
-    pub count: i16,
-}
-impl Validate for BedInput {
-    fn validate(&self, _validator: &Validator) -> Result<(), HttpResponse<BoxBody>> {
-        if !(MIN_BED_COUNT..=MAX_BED_COUNT).contains(&self.count) {
-            return Err(HttpResponse::BadRequest().body(format!(
-                "Bed count needs to be between {} and {}",
-                MIN_BED_COUNT, MAX_BED_COUNT
-            )));
-        }
-
-        Ok(())
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]

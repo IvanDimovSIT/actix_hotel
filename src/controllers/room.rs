@@ -8,7 +8,7 @@ use utoipa::OpenApi;
 use crate::{
     api::{
         error_response::ErrorReponse,
-        room::add_room::{AddRoomInput, AddRoomOutput, BedInput},
+        room::{add_room::{AddRoomInput, AddRoomOutput}, BedInput},
     },
     app_state::AppState,
     persistence::{bed::BedSize, room::BathroomType, user::Role},

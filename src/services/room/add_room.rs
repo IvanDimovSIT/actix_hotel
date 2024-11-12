@@ -5,7 +5,7 @@ use sea_orm::{
 use uuid::Uuid;
 
 use crate::{
-    api::room::add_room::{AddRoomInput, AddRoomOutput, BedInput},
+    api::room::{add_room::{AddRoomInput, AddRoomOutput}, BedInput},
     app_state::AppState,
     persistence::{
         bed, handle_db_error,
