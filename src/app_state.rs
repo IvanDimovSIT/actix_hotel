@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use log::info;
+use log::{error, info};
 use sea_orm::{Database, DatabaseConnection};
 
 use crate::{
@@ -23,7 +23,9 @@ impl EnvironmentVariables {
     pub fn get(&self, key: &str) -> &str {
         let val = self.env.get(key);
         if val.is_none() {
-            panic!("Environment variable '{}' not found", key);
+            let error_msg = format!("Environment variable '{}' not found", key);
+            error!("{}", error_msg);
+            panic!("{}", error_msg);
         }
 
         val.unwrap()

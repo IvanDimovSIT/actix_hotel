@@ -2,7 +2,7 @@ use actix_web::{middleware::Logger, web, App, HttpServer};
 use app_state::AppState;
 use constants::REST_HOST;
 use controllers::{
-    auth,
+    auth, guest,
     hello_world::{self},
     room,
 };
@@ -35,6 +35,7 @@ async fn main() -> std::io::Result<()> {
             .configure(hello_world::config)
             .configure(auth::config)
             .configure(room::config)
+            .configure(guest::config)
     })
     .bind(REST_HOST)?
     .run()

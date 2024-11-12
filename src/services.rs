@@ -11,6 +11,7 @@ use crate::api::error_response::ErrorReponse;
 
 pub mod auth;
 pub mod email_service;
+pub mod guest;
 pub mod hello_world;
 pub mod room;
 
