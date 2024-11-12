@@ -35,7 +35,7 @@ impl Validator {
                 .expect("Error creating id card number regex"),
             phone_number_regex: Regex::new(r"^\+[0-9]{8,15}$")
                 .expect("Error creating phone number regex"),
-            id_card_issue_authority_regex: Regex::new("^[A-Za-z]+[A-Za-z ]*[A-Za-z]+$")
+            id_card_issue_authority_regex: Regex::new("^[A-Za-z]+(?: [A-Za-z]+)*$")
                 .expect("Error creating id card issue authority regex"),
         }
     }
@@ -103,7 +103,7 @@ impl Validator {
         Self::validate(
             &self.id_card_issue_authority_regex,
             id_card_issue_authority,
-            || format!("Invalid issie authority '{}'", id_card_issue_authority),
+            || format!("Invalid id issue authority '{}'", id_card_issue_authority),
         )
     }
 
