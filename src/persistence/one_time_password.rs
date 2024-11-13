@@ -3,6 +3,7 @@ use std::error::Error;
 use sea_orm::prelude::DateTime;
 use sea_orm::ColumnTrait;
 use sea_orm::ConnectionTrait;
+use sea_orm::DbErr;
 use sea_orm::DerivePrimaryKey;
 use sea_orm::EntityTrait;
 use sea_orm::PrimaryKeyTrait;
@@ -57,7 +58,7 @@ where
 pub async fn find_otp_and_user_for_user_email<T>(
     db: &T,
     user_email: &str,
-) -> Result<Option<(Model, Option<super::user::Model>)>, Box<dyn Error>>
+) -> Result<Option<(Model, Option<super::user::Model>)>, DbErr>
 where
     T: ConnectionTrait,
 {

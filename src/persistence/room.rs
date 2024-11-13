@@ -3,6 +3,7 @@ use std::error::Error;
 use sea_orm::prelude::StringLen;
 use sea_orm::ColumnTrait;
 use sea_orm::ConnectionTrait;
+use sea_orm::DbErr;
 use sea_orm::DerivePrimaryKey;
 use sea_orm::EntityTrait;
 use sea_orm::PrimaryKeyTrait;
@@ -53,10 +54,7 @@ pub enum Relation {
 }
 impl ActiveModelBehavior for ActiveModel {}
 
-pub async fn find_by_room_number<T>(
-    db: &T,
-    room_number: &str,
-) -> Result<Option<Model>, Box<dyn Error>>
+pub async fn find_by_room_number<T>(db: &T, room_number: &str) -> Result<Option<Model>, DbErr>
 where
     T: ConnectionTrait,
 {

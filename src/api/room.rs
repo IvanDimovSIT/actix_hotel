@@ -2,7 +2,10 @@ use actix_web::{body::BoxBody, HttpResponse};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::{persistence::bed::BedSize, validation::{Validate, Validator}};
+use crate::{
+    persistence::bed::BedSize,
+    validation::{Validate, Validator},
+};
 
 pub mod add_room;
 

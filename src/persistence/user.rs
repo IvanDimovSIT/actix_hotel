@@ -5,6 +5,7 @@ use sea_orm::ActiveModelBehavior;
 use sea_orm::ColumnTrait;
 use sea_orm::ConnectionTrait;
 use sea_orm::DatabaseConnection;
+use sea_orm::DbErr;
 use sea_orm::DeriveActiveEnum;
 use sea_orm::DeriveEntityModel;
 use sea_orm::DerivePrimaryKey;
@@ -60,7 +61,7 @@ pub async fn find_user_by_email(
     Ok(user)
 }
 
-pub async fn find_user_by_id<T>(db: &T, id: &Uuid) -> Result<Option<Model>, Box<dyn Error>>
+pub async fn find_user_by_id<T>(db: &T, id: &Uuid) -> Result<Option<Model>, DbErr>
 where
     T: ConnectionTrait,
 {

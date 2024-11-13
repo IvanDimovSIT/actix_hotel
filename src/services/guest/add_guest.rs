@@ -70,7 +70,7 @@ fn find_conflicting_fields(
     }
 
     error!("{}", INVALID_STATE);
-    error_response(INVALID_STATE.to_string(), StatusCode::BAD_REQUEST)
+    error_response(INVALID_STATE.to_string(), StatusCode::INTERNAL_SERVER_ERROR)
 }
 
 async fn check_ucn_and_card_number_not_in_use(
@@ -98,7 +98,10 @@ async fn check_ucn_and_card_number_not_in_use(
     }
 }
 
-async fn save_guest(app_state: &AppState, input: &AddGuestInput) -> HttpResponse<BoxBody> {
+async fn save_guest(
+    app_state: &AppState,
+    input: &AddGuestInput,
+) -> Result<Uuid, HttpResponse<BoxBody>> {
     let (ucn, id_card_number, id_card_issue_authority, id_card_issue_date, id_card_validity) =
         if let Some(card) = &input.id_card {
             (
@@ -126,11 +129,10 @@ async fn save_guest(app_state: &AppState, input: &AddGuestInput) -> HttpResponse
         phone_number: ActiveValue::Set(input.phone_number.clone()),
     };
     if let Err(err) = guest.insert(app_state.db.as_ref()).await {
-        return handle_db_error(err);
+        return Err(handle_db_error(err));
     }
 
-    let output = AddGuestOutput { guest_id: id };
-    serialize_output(&output, StatusCode::CREATED)
+    Ok(id)
 }
 
 pub async fn add_guest(app_state: &AppState, input: &AddGuestInput) -> HttpResponse<BoxBody> {
@@ -138,5 +140,13 @@ pub async fn add_guest(app_state: &AppState, input: &AddGuestInput) -> HttpRespo
         return err;
     }
 
-    save_guest(app_state, input).await
+    let save_guest_result = save_guest(app_state, input).await;
+    if let Err(err) = save_guest_result {
+        return err;
+    }
+
+    let output = AddGuestOutput {
+        guest_id: save_guest_result.unwrap(),
+    };
+    serialize_output(&output, StatusCode::CREATED)
 }

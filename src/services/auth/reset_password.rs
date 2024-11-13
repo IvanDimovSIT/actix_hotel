@@ -23,7 +23,7 @@ pub async fn find_user_with_otp(
 ) -> Result<(one_time_password::Model, user::Model), HttpResponse<BoxBody>> {
     let result = find_otp_and_user_for_user_email(app_state.db.as_ref(), &input.email).await;
     if let Err(err) = result {
-        return Err(error_to_response(err));
+        return Err(handle_db_error(err));
     }
     let option = require_some(
         result.unwrap(),

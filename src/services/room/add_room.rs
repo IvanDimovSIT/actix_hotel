@@ -5,13 +5,16 @@ use sea_orm::{
 use uuid::Uuid;
 
 use crate::{
-    api::room::{add_room::{AddRoomInput, AddRoomOutput}, BedInput},
+    api::room::{
+        add_room::{AddRoomInput, AddRoomOutput},
+        BedInput,
+    },
     app_state::AppState,
     persistence::{
         bed, handle_db_error,
         room::{self},
     },
-    services::{error_response, error_to_response, serialize_output},
+    services::{error_response, serialize_output},
 };
 
 async fn check_room_number_not_used(
@@ -20,7 +23,7 @@ async fn check_room_number_not_used(
 ) -> Result<(), HttpResponse<BoxBody>> {
     let result = room::find_by_room_number(db, &input.room_number).await;
     if let Err(err) = result {
-        return Err(error_to_response(err));
+        return Err(handle_db_error(err));
     }
 
     if result.unwrap().is_some() {

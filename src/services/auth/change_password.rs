@@ -9,7 +9,7 @@ use crate::{
         user::{self, find_user_by_id},
     },
     security::{hash_password, passwords_match},
-    services::{error_response, error_to_response, serialize_output},
+    services::{error_response, serialize_output},
     util::require_some,
 };
 
@@ -19,7 +19,7 @@ async fn find_user(
 ) -> Result<user::Model, HttpResponse<BoxBody>> {
     let find_user_result = find_user_by_id(app_state.db.as_ref(), &input.user_id).await;
     if let Err(err) = find_user_result {
-        return Err(error_to_response(err));
+        return Err(handle_db_error(err));
     }
     let option_user = find_user_result.unwrap();
 

@@ -12,7 +12,6 @@ use crate::{
 
 use super::BedInput;
 
-
 const MIN_FLOOR: i16 = 1;
 const MAX_FLOOR: i16 = 100;
 

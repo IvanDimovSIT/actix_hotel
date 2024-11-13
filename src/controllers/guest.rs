@@ -8,7 +8,10 @@ use utoipa::OpenApi;
 use crate::{
     api::{
         error_response::ErrorReponse,
-        guest::{add_guest::{AddGuestInput, AddGuestOutput}, GuestIdCard},
+        guest::{
+            add_guest::{AddGuestInput, AddGuestOutput},
+            GuestIdCard,
+        },
     },
     app_state::AppState,
     persistence::user::Role,

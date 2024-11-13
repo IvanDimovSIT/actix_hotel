@@ -3,7 +3,10 @@ use sea_orm::{prelude::Date, sqlx::types::chrono::Utc};
 use serde::{Deserialize, Serialize};
 use utoipa::{schema, ToSchema};
 
-use crate::{services::error_response, validation::{Validate, Validator}};
+use crate::{
+    services::error_response,
+    validation::{Validate, Validator},
+};
 
 pub mod add_guest;
 
