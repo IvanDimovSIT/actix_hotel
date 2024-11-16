@@ -10,7 +10,7 @@ use crate::{
     validation::{Validate, Validator},
 };
 
-use super::BedInput;
+use super::Bed;
 
 const MIN_FLOOR: i16 = 1;
 const MAX_FLOOR: i16 = 100;
@@ -22,7 +22,7 @@ const MAX_PRICE: i64 = 100_000_00;
 #[serde(rename_all = "camelCase")]
 #[schema(rename_all = "camelCase")]
 pub struct AddRoomInput {
-    pub beds: Vec<BedInput>,
+    pub beds: Vec<Bed>,
     #[schema(example = "5000", minimum = 1, maximum = 100_000_00, required = true)]
     pub price: i64,
     #[schema(example = "3", minimum = 1, maximum = 100, required = true)]
@@ -33,7 +33,7 @@ pub struct AddRoomInput {
     pub bathroom_type: BathroomType,
 }
 impl AddRoomInput {
-    fn validate_unique(beds: &[BedInput]) -> Result<(), HttpResponse<BoxBody>> {
+    fn validate_unique(beds: &[Bed]) -> Result<(), HttpResponse<BoxBody>> {
         let sizes: HashSet<_> = beds.iter().map(|bed| bed.bed_size.clone()).collect();
 
         if sizes.len() != beds.len() {

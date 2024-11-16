@@ -5,6 +5,7 @@ use actix_web::{
     http::{header::ContentType, StatusCode},
     HttpResponse,
 };
+use log::error;
 use serde::Serialize;
 
 use crate::api::error_response::ErrorReponse;
@@ -29,6 +30,7 @@ where
 {
     let result = serde_json::to_string(body);
     if let Err(err) = result {
+        error!("Serialization error: {}", err);
         return HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR)
             .content_type(ContentType::plaintext())
             .body(format!("Error serializing output: {}", err));

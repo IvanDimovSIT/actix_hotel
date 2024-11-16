@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::{
     api::room::{
         add_room::{AddRoomInput, AddRoomOutput},
-        BedInput,
+        Bed,
     },
     app_state::AppState,
     persistence::{
@@ -58,7 +58,7 @@ async fn insert_room(
 
 async fn insert_bed(
     transaction: &DatabaseTransaction,
-    input: &BedInput,
+    input: &Bed,
     room_id: &Uuid,
 ) -> Result<(), HttpResponse<BoxBody>> {
     let total_capacity = input.bed_size.get_size() * input.count;
