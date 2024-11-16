@@ -1,54 +1,66 @@
-use std::error::Error;
+use std::{error::Error, future::Future};
 
 use actix_web::{
     body::BoxBody,
     http::{header::ContentType, StatusCode},
-    HttpResponse,
+    HttpRequest, HttpResponse,
 };
 use jsonwebtoken::get_current_timestamp;
 use log::error;
 use serde::Serialize;
 
 use crate::{
-    api::error_response::ErrorResponse, app_state::AppState, persistence::user::find_user_by_email,
-    security::Claims,
+    api::error_response::ErrorResponse,
+    app_state::AppState,
+    persistence::user::{find_user_by_email, Role},
+    security::{decode_claims, Claims, WithClaims},
+    validation::Validate,
 };
 
-/// A macro that handles the processing and logging of requests
-///
-/// Input:
-/// - `$state`: The application state (AppState)
-/// - `$input`: The input data (needs to implement Validate)
-/// - `$service`: The service function that processes request (Fn(&AppState, &$input) -> Result<PromoteOutput, ErrorResponse>)
-/// - `$status`: The HTTP response code (StatusCode)
-#[macro_export]
-macro_rules! process_request {
-    ($state:expr, $input:expr, $service:expr, $status:expr) => {{
-        use crate::util::serialize_output;
-        use crate::validation::Validate;
-        use log::{error, info};
-        let _: &crate::AppState = $state;
-        let _: &dyn Validate = $input;
-        let _: StatusCode = $status;
-        const OPERATION_NAME: &str = stringify!($service);
-        info!("Start {}", OPERATION_NAME);
-        let validation_result = $input.validate(&$state.validator);
-        match validation_result {
-            Ok(_) => {
-                let output = $service($state, $input).await;
-                if output.is_ok() {
-                    info!("End {} success", OPERATION_NAME);
-                } else {
-                    error!("End {} error", OPERATION_NAME);
-                }
-                serialize_output(output, $status)
-            }
-            Err(err) => {
-                error!("End {} validation error", OPERATION_NAME);
-                err.into()
-            }
+pub async fn process_request<'a, I, S, F, O>(
+    state: &'a AppState,
+    input: I,
+    service: S,
+    status: StatusCode,
+) -> HttpResponse<BoxBody>
+where
+    I: Validate,
+    S: Fn(&'a AppState, I) -> F,
+    F: Future<Output = Result<O, ErrorResponse>>,
+    O: Serialize,
+{
+    let validation_result = input.validate(&state.validator);
+    match validation_result {
+        Ok(_) => {
+            let output = service(state, input).await;
+            serialize_output(output, status)
         }
-    }};
+        Err(err) => err.into(),
+    }
+}
+
+pub async fn process_request_secured<'a, I, S, F, O>(
+    request: HttpRequest,
+    required_roles: &[Role],
+    state: &'a AppState,
+    input: I,
+    service: S,
+    status: StatusCode,
+) -> HttpResponse<BoxBody>
+where
+    I: Validate + WithClaims,
+    S: Fn(&'a AppState, I) -> F,
+    F: Future<Output = Result<O, ErrorResponse>>,
+    O: Serialize,
+{
+    let claims_result = decode_claims(&request, state, required_roles);
+    match claims_result {
+        Ok(claims) => {
+            let input_with_claims = input.with_claims(claims);
+            process_request(state, input_with_claims, service, status).await
+        }
+        Err(err) => err.into(),
+    }
 }
 
 pub fn error_to_response(err: Box<dyn Error>) -> ErrorResponse {

@@ -54,7 +54,7 @@ async fn send_email(
 
 pub async fn send_otp(
     app_state: &AppState,
-    input: &SendOtpInput,
+    input: SendOtpInput,
 ) -> Result<SendOtpOutput, ErrorResponse> {
     let user = find_user(app_state, &input.email).await?;
     let otp_code = create_otp(app_state, &user).await?;

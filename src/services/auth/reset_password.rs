@@ -71,13 +71,13 @@ async fn change_user_password(
 
 pub async fn reset_password(
     app_state: &AppState,
-    input: &ResetPasswordInput,
+    input: ResetPasswordInput,
 ) -> Result<ResetPasswordOutput, ErrorResponse> {
     let (otp, user) = find_user_with_otp(app_state, &input).await?;
-    validate_otp(&otp, input)?;
+    validate_otp(&otp, &input)?;
 
     let transaction = app_state.db.begin().await?;
-    change_user_password(&transaction, user, input).await?;
+    change_user_password(&transaction, user, &input).await?;
     delete_all_for_user(&transaction, &otp.user_id).await?;
     transaction.commit().await?;
 

@@ -4,6 +4,7 @@ use utoipa::ToSchema;
 
 use crate::{
     api::error_response::ErrorResponse,
+    security::WithClaims,
     validation::{Validate, Validator},
 };
 
@@ -19,6 +20,11 @@ impl Validate for PromoteInput {
         validator.validate_email(&self.email)?;
 
         return Ok(());
+    }
+}
+impl WithClaims for PromoteInput {
+    fn with_claims(self, _claims: crate::security::Claims) -> Self {
+        self
     }
 }
 

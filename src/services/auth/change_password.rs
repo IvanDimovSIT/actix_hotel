@@ -41,9 +41,9 @@ async fn save_new_user(
 
 pub async fn change_password(
     app_state: &AppState,
-    input: &ChangePasswordInput,
+    input: ChangePasswordInput,
 ) -> Result<ChangePasswordOutput, ErrorResponse> {
-    let user = find_user(app_state, input).await?;
+    let user = find_user(app_state, &input).await?;
 
     if !passwords_match(&input.old_password, &user.password) {
         return Err(ErrorResponse::new(
@@ -52,7 +52,7 @@ pub async fn change_password(
         ));
     }
 
-    save_new_user(app_state, user, input).await?;
+    save_new_user(app_state, user, &input).await?;
 
     Ok(ChangePasswordOutput)
 }

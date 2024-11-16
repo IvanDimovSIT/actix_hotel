@@ -19,10 +19,8 @@ use crate::{
     },
     app_state::AppState,
     persistence::{bed::BedSize, room::BathroomType, user::Role},
-    process_request,
-    security::decode_claims,
     services::room::{add_room::add_room, get_room::get_room},
-    validation::Validate,
+    util::process_request_secured,
 };
 
 #[derive(OpenApi)]
@@ -66,13 +64,15 @@ pub async fn add_room_controller(
     state: Data<AppState>,
     input: Json<AddRoomInput>,
 ) -> impl Responder {
-    if let Err(err) = decode_claims(&req, &state, &[Role::Admin]) {
-        return err.into();
-    }
-
-    let add_room_input = input.into_inner();
-
-    process_request!(&state, &add_room_input, add_room, StatusCode::CREATED)
+    process_request_secured(
+        req,
+        &[Role::Admin],
+        &state,
+        input.into_inner(),
+        add_room,
+        StatusCode::CREATED,
+    )
+    .await
 }
 
 #[utoipa::path(
@@ -93,13 +93,17 @@ pub async fn get_room_controller(
     state: Data<AppState>,
     path: Path<Uuid>,
 ) -> impl Responder {
-    if let Err(err) = decode_claims(&req, &state, &[Role::User, Role::Admin]) {
-        return err.into();
-    }
-
     let input = GetRoomInput {
         room_id: path.into_inner(),
     };
 
-    process_request!(&state, &input, get_room, StatusCode::OK)
+    process_request_secured(
+        req,
+        &[Role::User, Role::Admin],
+        &state,
+        input,
+        get_room,
+        StatusCode::OK,
+    )
+    .await
 }

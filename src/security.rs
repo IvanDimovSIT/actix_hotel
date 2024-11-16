@@ -56,6 +56,10 @@ impl Claims {
     }
 }
 
+pub trait WithClaims {
+    fn with_claims(self, claims: Claims) -> Self;
+}
+
 pub fn hash_password(password: &str) -> String {
     hash(password, BCRYPT_COST).expect("Error hashing password")
 }

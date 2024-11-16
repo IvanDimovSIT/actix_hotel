@@ -12,7 +12,7 @@ use crate::{
 
 pub async fn promote(
     app_state: &AppState,
-    input: &PromoteInput,
+    input: PromoteInput,
 ) -> Result<PromoteOutput, ErrorResponse> {
     let found_user = find_user(app_state, &input.email).await?;
     let mut active_user = found_user.into_active_model();

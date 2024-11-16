@@ -32,8 +32,8 @@ async fn find_user(app_state: &AppState, input: &LoginInput) -> Result<Model, Er
     Ok(user)
 }
 
-pub async fn login(app_state: &AppState, input: &LoginInput) -> Result<LoginOutput, ErrorResponse> {
-    let user = find_user(app_state, input).await?;
+pub async fn login(app_state: &AppState, input: LoginInput) -> Result<LoginOutput, ErrorResponse> {
+    let user = find_user(app_state, &input).await?;
 
     if !passwords_match(&input.password, &user.password) {
         return Err(ErrorResponse::new(

@@ -14,7 +14,7 @@ use crate::{
 
 pub async fn register_user(
     app_state: &AppState,
-    input: &RegisterUserInput,
+    input: RegisterUserInput,
 ) -> Result<RegisterUserOutput, ErrorResponse> {
     let find_user_result = find_user_by_email(&app_state.db, &input.email).await?;
 

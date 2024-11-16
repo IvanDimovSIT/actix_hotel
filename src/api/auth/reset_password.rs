@@ -1,5 +1,4 @@
 use ::serde::{Deserialize, Serialize};
-use actix_web::{body::BoxBody, HttpResponse};
 use utoipa::{schema, ToSchema};
 
 use crate::{

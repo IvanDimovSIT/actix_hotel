@@ -51,9 +51,9 @@ fn convert_room_to_output(room_beds: (room::Model, Vec<bed::Model>)) -> GetRoomO
 
 pub async fn get_room(
     app_state: &AppState,
-    input: &GetRoomInput,
+    input: GetRoomInput,
 ) -> Result<GetRoomOutput, ErrorResponse> {
-    find_room(app_state, input)
+    find_room(app_state, &input)
         .await
         .map(convert_room_to_output)
 }

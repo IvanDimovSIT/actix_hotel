@@ -16,10 +16,8 @@ use crate::{
     },
     app_state::AppState,
     persistence::user::Role,
-    process_request,
-    security::decode_claims,
     services::guest::add_guest::add_guest,
-    validation::Validate,
+    util::process_request_secured,
 };
 
 #[derive(OpenApi)]
@@ -53,10 +51,13 @@ pub async fn add_guest_controller(
     state: Data<AppState>,
     input: Json<AddGuestInput>,
 ) -> impl Responder {
-    if let Err(err) = decode_claims(&req, &state, &[Role::Admin]) {
-        return err.into();
-    }
-
-    let add_guest_input = input.into_inner();
-    process_request!(&state, &add_guest_input, add_guest, StatusCode::CREATED)
+    process_request_secured(
+        req,
+        &[Role::Admin],
+        &state,
+        input.into_inner(),
+        add_guest,
+        StatusCode::CREATED,
+    )
+    .await
 }

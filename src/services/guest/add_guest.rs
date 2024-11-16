@@ -130,11 +130,11 @@ async fn save_guest(app_state: &AppState, input: &AddGuestInput) -> Result<Uuid,
 
 pub async fn add_guest(
     app_state: &AppState,
-    input: &AddGuestInput,
+    input: AddGuestInput,
 ) -> Result<AddGuestOutput, ErrorResponse> {
-    check_ucn_and_card_number_not_in_use(app_state, input).await?;
+    check_ucn_and_card_number_not_in_use(app_state, &input).await?;
 
-    let guest_id = save_guest(app_state, input).await?;
+    let guest_id = save_guest(app_state, &input).await?;
 
     Ok(AddGuestOutput { guest_id })
 }

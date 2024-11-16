@@ -1,4 +1,4 @@
-use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
+use actix_web::http::StatusCode;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 

@@ -8,6 +8,7 @@ use uuid::Uuid;
 use crate::{
     api::error_response::ErrorResponse,
     persistence::{bed::BedSize, room::BathroomType},
+    security::WithClaims,
     validation::{Validate, Validator},
 };
 
@@ -78,6 +79,11 @@ impl Validate for AddRoomInput {
         validator.validate_room_number(&self.room_number)?;
 
         Ok(())
+    }
+}
+impl WithClaims for AddRoomInput {
+    fn with_claims(self, _claims: crate::security::Claims) -> Self {
+        self
     }
 }
 

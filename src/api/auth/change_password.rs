@@ -5,6 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     api::error_response::ErrorResponse,
+    security::WithClaims,
     validation::{Validate, Validator},
 };
 
@@ -25,6 +26,14 @@ impl Validate for ChangePasswordInput {
         validator.validate_password(&self.new_password)?;
 
         Ok(())
+    }
+}
+impl WithClaims for ChangePasswordInput {
+    fn with_claims(self, claims: crate::security::Claims) -> Self {
+        Self {
+            user_id: claims.user_id,
+            ..self
+        }
     }
 }
 

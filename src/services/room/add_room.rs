@@ -78,13 +78,13 @@ async fn insert_bed(
 
 pub async fn add_room(
     app_state: &AppState,
-    input: &AddRoomInput,
+    input: AddRoomInput,
 ) -> Result<AddRoomOutput, ErrorResponse> {
-    check_room_number_not_used(&app_state.db, input).await?;
+    check_room_number_not_used(&app_state.db, &input).await?;
 
     let transaction = app_state.db.begin().await?;
 
-    let room_id = insert_room(&transaction, input).await?;
+    let room_id = insert_room(&transaction, &input).await?;
 
     for bed in &input.beds {
         insert_bed(&transaction, bed, &room_id).await?;

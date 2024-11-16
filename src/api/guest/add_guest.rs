@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     api::error_response::ErrorResponse,
+    security::WithClaims,
     validation::{Validate, Validator},
 };
 
@@ -50,6 +51,11 @@ impl Validate for AddGuestInput {
         }
 
         Ok(())
+    }
+}
+impl WithClaims for AddGuestInput {
+    fn with_claims(self, _claims: crate::security::Claims) -> Self {
+        self
     }
 }
 

@@ -22,13 +22,13 @@ use crate::{
     },
     app_state::AppState,
     persistence::user::Role,
-    process_request,
-    security::{decode_claims, Claims},
+    security::Claims,
     services::auth::{
         change_password::change_password, login::login, promote::promote,
         refresh_token::refresh_token, register_user::register_user, reset_password::reset_password,
         send_otp::send_otp,
     },
+    util::{process_request, process_request_secured},
 };
 
 #[derive(OpenApi)]
@@ -88,14 +88,13 @@ pub async fn register_controller(
     state: Data<AppState>,
     input: Json<RegisterUserInput>,
 ) -> impl Responder {
-    let register_user_input = input.into_inner();
-
-    process_request!(
+    process_request(
         &state,
-        &register_user_input,
+        input.into_inner(),
         register_user,
-        StatusCode::CREATED
+        StatusCode::CREATED,
     )
+    .await
 }
 
 #[utoipa::path(
@@ -112,9 +111,7 @@ pub async fn register_controller(
 )]
 #[post("/auth/login")]
 pub async fn login_controller(state: Data<AppState>, input: Json<LoginInput>) -> impl Responder {
-    let login_input = input.into_inner();
-
-    process_request!(&state, &login_input, login, StatusCode::OK)
+    process_request(&state, input.into_inner(), login, StatusCode::OK).await
 }
 
 #[utoipa::path(
@@ -137,13 +134,15 @@ pub async fn promote_controller(
     state: Data<AppState>,
     input: Json<PromoteInput>,
 ) -> impl Responder {
-    let authorization_result = decode_claims(&req, &state, &[Role::Admin]);
-    if let Err(err) = authorization_result {
-        return err.into();
-    }
-    let promote_input = input.into_inner();
-
-    process_request!(&state, &promote_input, promote, StatusCode::OK)
+    process_request_secured(
+        req,
+        &[Role::Admin],
+        &state,
+        input.into_inner(),
+        promote,
+        StatusCode::OK,
+    )
+    .await
 }
 
 #[utoipa::path(
@@ -157,16 +156,19 @@ pub async fn promote_controller(
 )]
 #[get("/auth/refresh")]
 pub async fn refresh_token_controller(req: HttpRequest, state: Data<AppState>) -> impl Responder {
-    let authorization = decode_claims(&req, &state, &[Role::User, Role::Admin]);
-    if let Err(err) = authorization {
-        return err.into();
-    }
-
-    let refresh_token_input = RefreshTokenInput {
-        claims: authorization.unwrap(),
+    let input = RefreshTokenInput {
+        ..Default::default()
     };
 
-    process_request!(&state, &refresh_token_input, refresh_token, StatusCode::OK)
+    process_request_secured(
+        req,
+        &[Role::User, Role::Admin],
+        &state,
+        input,
+        refresh_token,
+        StatusCode::OK,
+    )
+    .await
 }
 
 #[utoipa::path(
@@ -189,23 +191,15 @@ pub async fn change_password_controller(
     state: Data<AppState>,
     input: Json<ChangePasswordInput>,
 ) -> impl Responder {
-    let authorization = decode_claims(&req, &state, &[Role::Admin, Role::User]);
-    if let Err(err) = authorization {
-        return err.into();
-    }
-    let user_id = authorization.unwrap().user_id;
-
-    let change_password_input = ChangePasswordInput {
-        user_id,
-        ..input.into_inner()
-    };
-
-    process_request!(
+    process_request_secured(
+        req,
+        &[Role::Admin, Role::User],
         &state,
-        &change_password_input,
+        input.into_inner(),
         change_password,
-        StatusCode::OK
+        StatusCode::OK,
     )
+    .await
 }
 
 #[utoipa::path(
@@ -225,9 +219,7 @@ pub async fn send_otp_controller(
     state: Data<AppState>,
     input: Json<SendOtpInput>,
 ) -> impl Responder {
-    let send_otp_input = input.into_inner();
-
-    process_request!(&state, &send_otp_input, send_otp, StatusCode::OK)
+    process_request(&state, input.into_inner(), send_otp, StatusCode::OK).await
 }
 
 #[utoipa::path(
@@ -247,12 +239,5 @@ pub async fn reset_password_controller(
     state: Data<AppState>,
     input: Json<ResetPasswordInput>,
 ) -> impl Responder {
-    let reset_password_input = input.into_inner();
-
-    process_request!(
-        &state,
-        &reset_password_input,
-        reset_password,
-        StatusCode::OK
-    )
+    process_request(&state, input.into_inner(), reset_password, StatusCode::OK).await
 }

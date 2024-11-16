@@ -6,6 +6,7 @@ use uuid::Uuid;
 use crate::{
     api::error_response::ErrorResponse,
     persistence::room::BathroomType,
+    security::WithClaims,
     validation::{Validate, Validator},
 };
 
@@ -20,6 +21,11 @@ pub struct GetRoomInput {
 impl Validate for GetRoomInput {
     fn validate(&self, _validator: &Validator) -> Result<(), ErrorResponse> {
         Ok(())
+    }
+}
+impl WithClaims for GetRoomInput {
+    fn with_claims(self, _claims: crate::security::Claims) -> Self {
+        self
     }
 }
 
