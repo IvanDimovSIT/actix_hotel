@@ -11,10 +11,11 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
+    api::error_response::ErrorResponse,
     app_state::AppState,
     constants::{BCRYPT_COST, BEARER_PREFIX, OTP_LENGTH},
     persistence::user::Role,
-    services::{error_response, error_to_response},
+    util::error_to_response,
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
@@ -75,21 +76,21 @@ pub fn decode_claims(
     req: &HttpRequest,
     app_state: &AppState,
     roles: &[Role],
-) -> Result<Claims, HttpResponse<BoxBody>> {
+) -> Result<Claims, ErrorResponse> {
     let auth_header_option = req
         .headers()
         .get("Authorization")
         .and_then(|h| h.to_str().ok());
 
     if auth_header_option.is_none() {
-        return Err(error_response(
+        return Err(ErrorResponse::new(
             "Not authenticated: missing JWT".to_string(),
             StatusCode::UNAUTHORIZED,
         ));
     }
     let auth_header = auth_header_option.unwrap();
     if !auth_header.starts_with(BEARER_PREFIX) {
-        return Err(error_response(
+        return Err(ErrorResponse::new(
             "Not authenticated: invalid JWT format".to_string(),
             StatusCode::UNAUTHORIZED,
         ));
@@ -102,7 +103,7 @@ pub fn decode_claims(
 
     let claims = decoded.unwrap();
     if claims.exp < get_current_timestamp() {
-        return Err(error_response(
+        return Err(ErrorResponse::new(
             "Not authenticated: expired JWT".to_string(),
             StatusCode::UNAUTHORIZED,
         ));
@@ -113,7 +114,7 @@ pub fn decode_claims(
     if has_role {
         Ok(claims)
     } else {
-        Err(error_response(
+        Err(ErrorResponse::new(
             "Insufficient access".to_string(),
             StatusCode::FORBIDDEN,
         ))

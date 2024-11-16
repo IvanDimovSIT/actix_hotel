@@ -4,13 +4,15 @@ use sea_orm::{ActiveModelTrait, ActiveValue};
 use uuid::Uuid;
 
 use crate::{
-    api::guest::add_guest::{AddGuestInput, AddGuestOutput},
+    api::{
+        error_response::ErrorResponse,
+        guest::add_guest::{AddGuestInput, AddGuestOutput},
+    },
     app_state::AppState,
     persistence::{
         guest::{self, find_first_by_ucn_or_card_number_or_phone, ActiveModel},
         handle_db_error,
     },
-    services::{error_response, serialize_output},
 };
 
 const INVALID_STATE: &str = "Invalid state when searching for existing ucn or id card number";
@@ -20,20 +22,16 @@ async fn find_existing_guest(
     ucn: &Option<String>,
     id_card_number: &Option<String>,
     phone_number: &Option<String>,
-) -> Result<Option<guest::Model>, HttpResponse<BoxBody>> {
-    let result = find_first_by_ucn_or_card_number_or_phone(
+) -> Result<Option<guest::Model>, ErrorResponse> {
+    let guest = find_first_by_ucn_or_card_number_or_phone(
         app_state.db.as_ref(),
         ucn,
         id_card_number,
         phone_number,
     )
-    .await;
+    .await?;
 
-    if let Err(err) = result {
-        return Err(handle_db_error(err));
-    }
-
-    Ok(result.unwrap())
+    Ok(guest)
 }
 
 fn find_conflicting_fields(
@@ -41,19 +39,19 @@ fn find_conflicting_fields(
     ucn: Option<String>,
     id_card_number: Option<String>,
     phone_number: Option<String>,
-) -> HttpResponse<BoxBody> {
+) -> ErrorResponse {
     let found_ucn = guest.ucn;
     let found_card_number = guest.id_card_number;
     let found_phone_number = guest.phone_number;
     if found_ucn.is_some() && ucn.is_some() && found_ucn.unwrap() == ucn.clone().unwrap() {
-        return error_response("UCN is already in use".to_string(), StatusCode::BAD_REQUEST);
+        return ErrorResponse::new("UCN is already in use".to_string(), StatusCode::BAD_REQUEST);
     }
 
     if found_card_number.is_some()
         && id_card_number.is_some()
         && found_card_number.unwrap() == id_card_number.clone().unwrap()
     {
-        return error_response(
+        return ErrorResponse::new(
             "Id card number is already in use".to_string(),
             StatusCode::BAD_REQUEST,
         );
@@ -63,20 +61,20 @@ fn find_conflicting_fields(
         && phone_number.is_some()
         && found_phone_number.unwrap() == phone_number.clone().unwrap()
     {
-        return error_response(
+        return ErrorResponse::new(
             "Phone number is already in use".to_string(),
             StatusCode::BAD_REQUEST,
         );
     }
 
     error!("{}", INVALID_STATE);
-    error_response(INVALID_STATE.to_string(), StatusCode::INTERNAL_SERVER_ERROR)
+    ErrorResponse::new(INVALID_STATE.to_string(), StatusCode::INTERNAL_SERVER_ERROR)
 }
 
 async fn check_ucn_and_card_number_not_in_use(
     app_state: &AppState,
     input: &AddGuestInput,
-) -> Result<(), HttpResponse<BoxBody>> {
+) -> Result<(), ErrorResponse> {
     let (ucn, id_card_number) = if let Some(card) = &input.id_card {
         (Some(card.ucn.clone()), Some(card.id_card_number.clone()))
     } else {
@@ -98,10 +96,7 @@ async fn check_ucn_and_card_number_not_in_use(
     }
 }
 
-async fn save_guest(
-    app_state: &AppState,
-    input: &AddGuestInput,
-) -> Result<Uuid, HttpResponse<BoxBody>> {
+async fn save_guest(app_state: &AppState, input: &AddGuestInput) -> Result<Uuid, ErrorResponse> {
     let (ucn, id_card_number, id_card_issue_authority, id_card_issue_date, id_card_validity) =
         if let Some(card) = &input.id_card {
             (
@@ -128,25 +123,18 @@ async fn save_guest(
         id_card_validity: ActiveValue::Set(id_card_validity),
         phone_number: ActiveValue::Set(input.phone_number.clone()),
     };
-    if let Err(err) = guest.insert(app_state.db.as_ref()).await {
-        return Err(handle_db_error(err));
-    }
+    guest.insert(app_state.db.as_ref()).await?;
 
     Ok(id)
 }
 
-pub async fn add_guest(app_state: &AppState, input: &AddGuestInput) -> HttpResponse<BoxBody> {
-    if let Err(err) = check_ucn_and_card_number_not_in_use(app_state, input).await {
-        return err;
-    }
+pub async fn add_guest(
+    app_state: &AppState,
+    input: &AddGuestInput,
+) -> Result<AddGuestOutput, ErrorResponse> {
+    check_ucn_and_card_number_not_in_use(app_state, input).await?;
 
-    let save_guest_result = save_guest(app_state, input).await;
-    if let Err(err) = save_guest_result {
-        return err;
-    }
+    let guest_id = save_guest(app_state, input).await?;
 
-    let output = AddGuestOutput {
-        guest_id: save_guest_result.unwrap(),
-    };
-    serialize_output(&output, StatusCode::CREATED)
+    Ok(AddGuestOutput { guest_id })
 }

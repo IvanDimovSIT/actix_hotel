@@ -43,7 +43,7 @@ impl Related<super::user::Entity> for Entity {
     }
 }
 
-pub async fn delete_all_for_user<T>(db: &T, user_id: &Uuid) -> Result<u64, Box<dyn Error>>
+pub async fn delete_all_for_user<T>(db: &T, user_id: &Uuid) -> Result<u64, DbErr>
 where
     T: ConnectionTrait,
 {

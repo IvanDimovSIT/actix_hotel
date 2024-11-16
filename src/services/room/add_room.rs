@@ -1,33 +1,35 @@
-use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
+use actix_web::http::StatusCode;
 use sea_orm::{
     ActiveModelTrait, ActiveValue, DatabaseConnection, DatabaseTransaction, TransactionTrait,
 };
 use uuid::Uuid;
 
 use crate::{
-    api::room::{
-        add_room::{AddRoomInput, AddRoomOutput},
-        Bed,
+    api::{
+        error_response::ErrorResponse,
+        room::{
+            add_room::{AddRoomInput, AddRoomOutput},
+            Bed,
+        },
     },
     app_state::AppState,
     persistence::{
         bed, handle_db_error,
         room::{self},
     },
-    services::{error_response, serialize_output},
 };
 
 async fn check_room_number_not_used(
     db: &DatabaseConnection,
     input: &AddRoomInput,
-) -> Result<(), HttpResponse<BoxBody>> {
+) -> Result<(), ErrorResponse> {
     let result = room::find_by_room_number(db, &input.room_number).await;
     if let Err(err) = result {
         return Err(handle_db_error(err));
     }
 
     if result.unwrap().is_some() {
-        return Err(error_response(
+        return Err(ErrorResponse::new(
             format!("Room number '{}' is already in use", input.room_number),
             StatusCode::BAD_REQUEST,
         ));
@@ -39,7 +41,7 @@ async fn check_room_number_not_used(
 async fn insert_room(
     transaction: &DatabaseTransaction,
     input: &AddRoomInput,
-) -> Result<Uuid, HttpResponse<BoxBody>> {
+) -> Result<Uuid, ErrorResponse> {
     let id = Uuid::new_v4();
     let room_to_save = room::ActiveModel {
         id: ActiveValue::Set(id),
@@ -60,7 +62,7 @@ async fn insert_bed(
     transaction: &DatabaseTransaction,
     input: &Bed,
     room_id: &Uuid,
-) -> Result<(), HttpResponse<BoxBody>> {
+) -> Result<(), ErrorResponse> {
     let total_capacity = input.bed_size.get_size() * input.count;
     let bed_to_save = bed::ActiveModel {
         id: ActiveValue::Set(Uuid::new_v4()),
@@ -69,41 +71,26 @@ async fn insert_bed(
         count: ActiveValue::Set(input.count),
         total_capacity: ActiveValue::Set(total_capacity),
     };
-    if let Err(err) = bed_to_save.insert(transaction).await {
-        return Err(handle_db_error(err));
-    }
+    bed_to_save.insert(transaction).await?;
 
     Ok(())
 }
 
-pub async fn add_room(app_state: &AppState, input: &AddRoomInput) -> HttpResponse<BoxBody> {
-    if let Err(err) = check_room_number_not_used(&app_state.db, input).await {
-        return err;
-    }
+pub async fn add_room(
+    app_state: &AppState,
+    input: &AddRoomInput,
+) -> Result<AddRoomOutput, ErrorResponse> {
+    check_room_number_not_used(&app_state.db, input).await?;
 
-    let transaction_result = app_state.db.begin().await;
-    if let Err(err) = transaction_result {
-        return handle_db_error(err);
-    }
-    let transaction = transaction_result.unwrap();
+    let transaction = app_state.db.begin().await?;
 
-    let insert_room_result = insert_room(&transaction, input).await;
-    if let Err(err) = insert_room_result {
-        return err;
-    }
+    let room_id = insert_room(&transaction, input).await?;
 
-    let room_id = insert_room_result.unwrap();
     for bed in &input.beds {
-        if let Err(err) = insert_bed(&transaction, bed, &room_id).await {
-            return err;
-        }
+        insert_bed(&transaction, bed, &room_id).await?;
     }
 
-    if let Err(err) = transaction.commit().await {
-        return handle_db_error(err);
-    }
+    transaction.commit().await?;
 
-    let output = AddRoomOutput { room_id };
-
-    serialize_output(&output, StatusCode::CREATED)
+    Ok(AddRoomOutput { room_id })
 }

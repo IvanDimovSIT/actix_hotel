@@ -1,4 +1,4 @@
-use actix_web::{body::BoxBody, HttpResponse};
+use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -6,6 +6,8 @@ use crate::{
     persistence::bed::BedSize,
     validation::{Validate, Validator},
 };
+
+use super::error_response::ErrorResponse;
 
 pub mod add_room;
 pub mod get_room;
@@ -23,12 +25,15 @@ pub struct Bed {
     pub count: i16,
 }
 impl Validate for Bed {
-    fn validate(&self, _validator: &Validator) -> Result<(), HttpResponse<BoxBody>> {
+    fn validate(&self, _validator: &Validator) -> Result<(), ErrorResponse> {
         if !(MIN_BED_COUNT..=MAX_BED_COUNT).contains(&self.count) {
-            return Err(HttpResponse::BadRequest().body(format!(
-                "Bed count needs to be between {} and {}",
-                MIN_BED_COUNT, MAX_BED_COUNT
-            )));
+            return Err(ErrorResponse::new(
+                format!(
+                    "Bed count needs to be between {} and {}",
+                    MIN_BED_COUNT, MAX_BED_COUNT
+                ),
+                StatusCode::BAD_REQUEST,
+            ));
         }
 
         Ok(())

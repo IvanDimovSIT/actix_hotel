@@ -1,4 +1,5 @@
 use actix_web::{
+    http::StatusCode,
     post,
     web::{Data, Json, ServiceConfig},
     HttpRequest, Responder,
@@ -7,7 +8,7 @@ use utoipa::OpenApi;
 
 use crate::{
     api::{
-        error_response::ErrorReponse,
+        error_response::ErrorResponse,
         guest::{
             add_guest::{AddGuestInput, AddGuestOutput},
             GuestIdCard,
@@ -15,6 +16,7 @@ use crate::{
     },
     app_state::AppState,
     persistence::user::Role,
+    process_request,
     security::decode_claims,
     services::guest::add_guest::add_guest,
     validation::Validate,
@@ -23,7 +25,7 @@ use crate::{
 #[derive(OpenApi)]
 #[openapi(
     paths(),
-    components(schemas(ErrorReponse, GuestIdCard, AddGuestInput, AddGuestOutput))
+    components(schemas(ErrorResponse, GuestIdCard, AddGuestInput, AddGuestOutput))
 )]
 pub struct GuestApiDoc;
 
@@ -52,13 +54,9 @@ pub async fn add_guest_controller(
     input: Json<AddGuestInput>,
 ) -> impl Responder {
     if let Err(err) = decode_claims(&req, &state, &[Role::Admin]) {
-        return err;
+        return err.into();
     }
 
     let add_guest_input = input.into_inner();
-    if let Err(err) = add_guest_input.validate(&state.validator) {
-        return err;
-    }
-
-    add_guest(&state, &add_guest_input).await
+    process_request!(&state, &add_guest_input, add_guest, StatusCode::CREATED)
 }

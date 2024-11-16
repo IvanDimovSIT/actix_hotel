@@ -1,5 +1,7 @@
 use actix_web::{
-    get, post, put,
+    get,
+    http::StatusCode,
+    post, put,
     web::{Data, Json, ServiceConfig},
     HttpRequest, Responder,
 };
@@ -16,16 +18,18 @@ use crate::{
             reset_password::{ResetPasswordInput, ResetPasswordOutput},
             send_otp::{SendOtpInput, SendOtpOutput},
         },
-        error_response::ErrorReponse,
+        error_response::ErrorResponse,
     },
     app_state::AppState,
     persistence::user::Role,
+    process_request,
     security::{decode_claims, Claims},
     services::auth::{
         change_password::change_password, login::login, promote::promote,
         refresh_token::refresh_token, register_user::register_user, reset_password::reset_password,
         send_otp::send_otp,
     },
+    util::serialize_output,
     validation::Validate,
 };
 
@@ -40,7 +44,7 @@ use crate::{
         reset_password_controller
     ),
     components(schemas(
-        ErrorReponse,
+        ErrorResponse,
         Claims,
         RegisterUserInput,
         RegisterUserOutput,
@@ -87,11 +91,13 @@ pub async fn register_controller(
     input: Json<RegisterUserInput>,
 ) -> impl Responder {
     let register_user_input = input.into_inner();
-    if let Err(err) = register_user_input.validate(&state.validator) {
-        return err;
-    }
 
-    register_user(&state.db, &register_user_input).await
+    process_request!(
+        &state,
+        &register_user_input,
+        register_user,
+        StatusCode::CREATED
+    )
 }
 
 #[utoipa::path(
@@ -109,11 +115,8 @@ pub async fn register_controller(
 #[post("/auth/login")]
 pub async fn login_controller(state: Data<AppState>, input: Json<LoginInput>) -> impl Responder {
     let login_input = input.into_inner();
-    if let Err(err) = login_input.validate(&state.validator) {
-        return err;
-    }
 
-    login(&state, &login_input).await
+    process_request!(&state, &login_input, login, StatusCode::OK)
 }
 
 #[utoipa::path(
@@ -136,17 +139,13 @@ pub async fn promote_controller(
     state: Data<AppState>,
     input: Json<PromoteInput>,
 ) -> impl Responder {
-    let authorization = decode_claims(&req, &state, &[Role::Admin]);
-    if let Err(err) = authorization {
-        return err;
+    let authorization_result = decode_claims(&req, &state, &[Role::Admin]);
+    if let Err(err) = authorization_result {
+        return err.into();
     }
-
     let promote_input = input.into_inner();
-    if let Err(err) = promote_input.validate(&state.validator) {
-        return err;
-    }
 
-    promote(&state, &promote_input).await
+    process_request!(&state, &promote_input, promote, StatusCode::OK)
 }
 
 #[utoipa::path(
@@ -162,14 +161,14 @@ pub async fn promote_controller(
 pub async fn refresh_token_controller(req: HttpRequest, state: Data<AppState>) -> impl Responder {
     let authorization = decode_claims(&req, &state, &[Role::User, Role::Admin]);
     if let Err(err) = authorization {
-        return err;
+        return err.into();
     }
 
     let refresh_token_input = RefreshTokenInput {
         claims: authorization.unwrap(),
     };
 
-    refresh_token(&state, &refresh_token_input).await
+    process_request!(&state, &refresh_token_input, refresh_token, StatusCode::OK)
 }
 
 #[utoipa::path(
@@ -194,20 +193,21 @@ pub async fn change_password_controller(
 ) -> impl Responder {
     let authorization = decode_claims(&req, &state, &[Role::Admin, Role::User]);
     if let Err(err) = authorization {
-        return err;
+        return err.into();
     }
     let user_id = authorization.unwrap().user_id;
 
-    let change_password_input = input.into_inner();
     let change_password_input = ChangePasswordInput {
         user_id,
-        ..change_password_input
+        ..input.into_inner()
     };
-    if let Err(err) = change_password_input.validate(&state.validator) {
-        return err;
-    }
 
-    change_password(&state, &change_password_input).await
+    process_request!(
+        &state,
+        &change_password_input,
+        change_password,
+        StatusCode::OK
+    )
 }
 
 #[utoipa::path(
@@ -228,11 +228,8 @@ pub async fn send_otp_controller(
     input: Json<SendOtpInput>,
 ) -> impl Responder {
     let send_otp_input = input.into_inner();
-    if let Err(err) = send_otp_input.validate(&state.validator) {
-        return err;
-    }
 
-    send_otp(&state, &send_otp_input).await
+    process_request!(&state, &send_otp_input, send_otp, StatusCode::OK)
 }
 
 #[utoipa::path(
@@ -253,9 +250,11 @@ pub async fn reset_password_controller(
     input: Json<ResetPasswordInput>,
 ) -> impl Responder {
     let reset_password_input = input.into_inner();
-    if let Err(err) = reset_password_input.validate(&state.validator) {
-        return err;
-    }
 
-    reset_password(&state, &reset_password_input).await
+    process_request!(
+        &state,
+        &reset_password_input,
+        reset_password,
+        StatusCode::OK
+    )
 }

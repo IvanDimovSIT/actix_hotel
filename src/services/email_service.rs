@@ -8,8 +8,11 @@ use lettre::{
 };
 use log::error;
 
+use crate::api::error_response::ErrorResponse;
 use crate::app_state::EnvironmentVariables;
 use crate::constants::{ENV_EMAIL_PASSWORD, ENV_EMAIL_RELAY, ENV_EMAIL_USERNAME};
+use crate::persistence::handle_db_error;
+use crate::util::error_to_response;
 
 pub struct EmailService {
     email: Mailbox,
@@ -33,7 +36,7 @@ impl EmailService {
         }
     }
 
-    pub async fn send_text_mail(
+    async fn try_send_text_mail(
         &self,
         to: String,
         subject: String,
@@ -52,6 +55,19 @@ impl EmailService {
                 error!("Could not send email: {err}");
                 Err(Box::new(err))
             }
+        }
+    }
+
+    pub async fn send_text_mail(
+        &self,
+        to: String,
+        subject: String,
+        body: String,
+    ) -> Result<(), ErrorResponse> {
+        if let Err(err) = self.try_send_text_mail(to, subject, body).await {
+            Err(error_to_response(err))
+        } else {
+            Ok(())
         }
     }
 }

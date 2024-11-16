@@ -79,13 +79,14 @@ where
     Ok(room)
 }
 
-pub async fn find_room_by_id<T>(db: &T, id: Uuid)-> Result<Option<(Model, Vec<crate::persistence::bed::Model>)>, DbErr>
+pub async fn find_room_by_id<T>(
+    db: &T,
+    id: Uuid,
+) -> Result<Option<(Model, Vec<crate::persistence::bed::Model>)>, DbErr>
 where
     T: ConnectionTrait,
 {
-    let room_option = Entity::find_by_id(id)
-        .one(db)
-        .await?;
+    let room_option = Entity::find_by_id(id).one(db).await?;
 
     if room_option.is_none() {
         return Ok(None);
@@ -93,9 +94,7 @@ where
 
     let room = room_option.unwrap();
 
-    let beds = room.find_related(bed::Entity)
-        .all(db)
-        .await?;
+    let beds = room.find_related(bed::Entity).all(db).await?;
 
     Ok(Some((room, beds)))
 }

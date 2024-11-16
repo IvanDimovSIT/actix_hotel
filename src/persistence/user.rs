@@ -52,7 +52,7 @@ impl ActiveModelBehavior for ActiveModel {}
 pub async fn find_user_by_email(
     db: &DatabaseConnection,
     email: &str,
-) -> Result<Option<Model>, Box<dyn Error>> {
+) -> Result<Option<Model>, DbErr> {
     let user = crate::persistence::user::Entity::find()
         .filter(crate::persistence::user::Column::Email.eq(email))
         .one(db)

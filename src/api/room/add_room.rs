@@ -1,11 +1,12 @@
 use std::collections::HashSet;
 
-use actix_web::{body::BoxBody, HttpResponse};
+use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
+    api::error_response::ErrorResponse,
     persistence::{bed::BedSize, room::BathroomType},
     validation::{Validate, Validator},
 };
@@ -33,21 +34,27 @@ pub struct AddRoomInput {
     pub bathroom_type: BathroomType,
 }
 impl AddRoomInput {
-    fn validate_unique(beds: &[Bed]) -> Result<(), HttpResponse<BoxBody>> {
+    fn validate_unique(beds: &[Bed]) -> Result<(), ErrorResponse> {
         let sizes: HashSet<_> = beds.iter().map(|bed| bed.bed_size.clone()).collect();
 
         if sizes.len() != beds.len() {
-            return Err(HttpResponse::BadRequest().body("Bed sizes must not repeat"));
+            return Err(ErrorResponse::new(
+                "Bed sizes must not repeat".to_string(),
+                StatusCode::BAD_REQUEST,
+            ));
         }
 
         Ok(())
     }
 }
 impl Validate for AddRoomInput {
-    fn validate(&self, validator: &Validator) -> Result<(), HttpResponse<BoxBody>> {
+    fn validate(&self, validator: &Validator) -> Result<(), ErrorResponse> {
         Self::validate_unique(&self.beds)?;
         if self.beds.is_empty() {
-            return Err(HttpResponse::BadRequest().body("Room needs at least 1 bed"));
+            return Err(ErrorResponse::new(
+                "Room needs at least 1 bed".to_string(),
+                StatusCode::BAD_REQUEST,
+            ));
         }
 
         for bed in &self.beds {
@@ -55,17 +62,17 @@ impl Validate for AddRoomInput {
         }
 
         if !(MIN_FLOOR..=MAX_FLOOR).contains(&self.floor) {
-            return Err(HttpResponse::BadRequest().body(format!(
-                "Floor need to be between {} and {}",
-                MIN_FLOOR, MAX_FLOOR
-            )));
+            return Err(ErrorResponse::new(
+                format!("Floor need to be between {} and {}", MIN_FLOOR, MAX_FLOOR),
+                StatusCode::BAD_REQUEST,
+            ));
         }
 
         if !(MIN_PRICE..=MAX_PRICE).contains(&self.price) {
-            return Err(HttpResponse::BadRequest().body(format!(
-                "Price need to be between {} and {}",
-                MIN_PRICE, MAX_PRICE
-            )));
+            return Err(ErrorResponse::new(
+                format!("Price need to be between {} and {}", MIN_PRICE, MAX_PRICE),
+                StatusCode::BAD_REQUEST,
+            ));
         }
 
         validator.validate_room_number(&self.room_number)?;

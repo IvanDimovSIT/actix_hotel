@@ -1,4 +1,4 @@
-use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
+use actix_web::http::StatusCode;
 use log::info;
 use sea_orm::{
     ActiveModelTrait, ActiveValue, ConnectionTrait, DatabaseConnection, DbErr, EntityTrait, Schema,
@@ -7,10 +7,10 @@ use user::find_user_by_email;
 use uuid::Uuid;
 
 use crate::{
+    api::error_response::ErrorResponse,
     app_state::EnvironmentVariables,
     constants::{ENV_INITIAL_ADMIN_EMAIL, ENV_INITIAL_ADMIN_PASSWORD},
     security::hash_password,
-    services::error_response,
 };
 
 pub mod bed;
@@ -68,8 +68,8 @@ fn db_error_to_string(error: DbErr) -> String {
     }
 }
 
-pub fn handle_db_error(error: DbErr) -> HttpResponse<BoxBody> {
-    error_response(db_error_to_string(error), StatusCode::INTERNAL_SERVER_ERROR)
+pub fn handle_db_error(error: DbErr) -> ErrorResponse {
+    ErrorResponse::new(db_error_to_string(error), StatusCode::INTERNAL_SERVER_ERROR)
 }
 
 async fn initialise_admin(db: &DatabaseConnection, env: &EnvironmentVariables) {

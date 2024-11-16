@@ -3,29 +3,26 @@ use sea_orm::{ActiveModelTrait, ActiveValue, DatabaseConnection};
 use uuid::Uuid;
 
 use crate::{
-    api::auth::register_user::{RegisterUserInput, RegisterUserOutput},
-    persistence::{
-        handle_db_error,
-        user::{self, find_user_by_email},
+    api::{
+        auth::register_user::{RegisterUserInput, RegisterUserOutput},
+        error_response::ErrorResponse,
     },
+    app_state::AppState,
+    persistence::user::{self, find_user_by_email},
     security::hash_password,
-    services::{error_response, error_to_response, serialize_output},
 };
 
 pub async fn register_user(
-    db: &DatabaseConnection,
+    app_state: &AppState,
     input: &RegisterUserInput,
-) -> HttpResponse<BoxBody> {
-    let result = find_user_by_email(db, &input.email).await;
-    if let Err(err) = result {
-        return error_to_response(err);
-    }
+) -> Result<RegisterUserOutput, ErrorResponse> {
+    let find_user_result = find_user_by_email(&app_state.db, &input.email).await?;
 
-    if result.unwrap().is_some() {
-        return error_response(
+    if find_user_result.is_some() {
+        return Err(ErrorResponse::new(
             format!("Email {} already taken", &input.email),
             StatusCode::BAD_REQUEST,
-        );
+        ));
     }
 
     let password = hash_password(&input.password);
@@ -37,14 +34,7 @@ pub async fn register_user(
         role: ActiveValue::Set(user::Role::User),
     };
 
-    let result = user_to_save.insert(db).await;
-    if let Err(err) = result {
-        return handle_db_error(err);
-    }
+    let user = user_to_save.insert(app_state.db.as_ref()).await?;
 
-    let output = RegisterUserOutput {
-        user_id: result.unwrap().id,
-    };
-
-    serialize_output(&output, StatusCode::CREATED)
+    Ok(RegisterUserOutput { user_id: user.id })
 }

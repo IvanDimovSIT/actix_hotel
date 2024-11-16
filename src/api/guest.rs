@@ -1,12 +1,11 @@
-use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
+use actix_web::http::StatusCode;
 use sea_orm::{prelude::Date, sqlx::types::chrono::Utc};
 use serde::{Deserialize, Serialize};
 use utoipa::{schema, ToSchema};
 
-use crate::{
-    services::error_response,
-    validation::{Validate, Validator},
-};
+use crate::validation::{Validate, Validator};
+
+use super::error_response::ErrorResponse;
 
 pub mod add_guest;
 
@@ -30,18 +29,18 @@ pub struct GuestIdCard {
     pub validity: Date,
 }
 impl Validate for GuestIdCard {
-    fn validate(&self, validator: &Validator) -> Result<(), HttpResponse<BoxBody>> {
+    fn validate(&self, validator: &Validator) -> Result<(), ErrorResponse> {
         validator.validate_ucn(&self.ucn)?;
         validator.validate_id_card_number(&self.id_card_number)?;
         validator.validate_id_card_issue_authority(&self.issue_authority)?;
 
         if self.issue_date > self.validity {
-            return Err(error_response(
+            return Err(ErrorResponse::new(
                 "Issue date must be before validity".to_string(),
                 StatusCode::BAD_REQUEST,
             ));
         } else if self.validity < Utc::now().date_naive() {
-            return Err(error_response(
+            return Err(ErrorResponse::new(
                 "Card is expired".to_string(),
                 StatusCode::BAD_REQUEST,
             ));

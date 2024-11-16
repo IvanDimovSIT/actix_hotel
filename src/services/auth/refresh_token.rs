@@ -1,25 +1,21 @@
-use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
+use actix_web::http::StatusCode;
 
 use crate::{
-    api::auth::refresh_token::{RefreshTokenInput, RefreshTokenOutput},
-    app_state::AppState,
-    persistence::{
-        handle_db_error,
-        user::{find_user_by_id, Model},
+    api::{
+        auth::refresh_token::{RefreshTokenInput, RefreshTokenOutput},
+        error_response::ErrorResponse,
     },
-    services::serialize_output,
+    app_state::AppState,
+    persistence::user::{find_user_by_id, Model},
     util::{create_token_from_user, require_some},
 };
 
 async fn find_user(
     app_state: &AppState,
     input: &RefreshTokenInput,
-) -> Result<Model, HttpResponse<BoxBody>> {
-    let result_find_user = find_user_by_id(app_state.db.as_ref(), &input.claims.user_id).await;
-    if let Err(err) = result_find_user {
-        return Err(handle_db_error(err));
-    }
-    let option_find_user = result_find_user.unwrap();
+) -> Result<Model, ErrorResponse> {
+    let option_find_user = find_user_by_id(app_state.db.as_ref(), &input.claims.user_id).await?;
+
     let user = require_some(
         option_find_user,
         || format!("User with email '{}' not found", &input.claims.user_id),
@@ -32,20 +28,9 @@ async fn find_user(
 pub async fn refresh_token(
     app_state: &AppState,
     input: &RefreshTokenInput,
-) -> HttpResponse<BoxBody> {
-    let find_user_result = find_user(app_state, input).await;
-    if let Err(err) = find_user_result {
-        return err;
-    }
-    let user = find_user_result.unwrap();
+) -> Result<RefreshTokenOutput, ErrorResponse> {
+    let user = find_user(app_state, input).await?;
 
-    let token_result = create_token_from_user(&user, app_state);
-    if let Err(err) = token_result {
-        return err;
-    }
-
-    let token = token_result.unwrap();
-    let output = RefreshTokenOutput { token };
-
-    serialize_output(&output, StatusCode::OK)
+    let token = create_token_from_user(&user, app_state)?;
+    Ok(RefreshTokenOutput { token })
 }

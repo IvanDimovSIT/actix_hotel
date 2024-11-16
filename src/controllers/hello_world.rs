@@ -1,4 +1,4 @@
-use crate::{api::error_response::ErrorReponse, services::hello_world::hello_world};
+use crate::{api::error_response::ErrorResponse, services::hello_world::hello_world};
 use actix_web::{
     get,
     web::{Path, ServiceConfig},
@@ -7,7 +7,7 @@ use actix_web::{
 use utoipa::OpenApi;
 
 #[derive(OpenApi)]
-#[openapi(paths(hello_world_controller), components(schemas(ErrorReponse)))]
+#[openapi(paths(hello_world_controller), components(schemas(ErrorResponse)))]
 pub struct HelloWorldApiDoc;
 
 pub fn config(cfg: &mut ServiceConfig) {

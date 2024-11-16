@@ -1,11 +1,11 @@
-use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
+use actix_web::http::StatusCode;
 use sea_orm::{prelude::Date, sqlx::types::chrono::Utc};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
-    services::error_response,
+    api::error_response::ErrorResponse,
     validation::{Validate, Validator},
 };
 
@@ -31,12 +31,12 @@ pub struct AddGuestInput {
     pub phone_number: Option<String>,
 }
 impl Validate for AddGuestInput {
-    fn validate(&self, validator: &Validator) -> Result<(), HttpResponse<BoxBody>> {
+    fn validate(&self, validator: &Validator) -> Result<(), ErrorResponse> {
         validator.validate_name(&self.first_name)?;
         validator.validate_name(&self.last_name)?;
 
         if self.date_of_birth >= Utc::now().date_naive() {
-            return Err(error_response(
+            return Err(ErrorResponse::new(
                 "Date of birth needs to be a past date".to_string(),
                 StatusCode::BAD_REQUEST,
             ));

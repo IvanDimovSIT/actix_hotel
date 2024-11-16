@@ -1,10 +1,10 @@
-use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
+use actix_web::http::StatusCode;
 use regex::Regex;
 
-use crate::{constants::OTP_LENGTH, services::error_response};
+use crate::{api::error_response::ErrorResponse, constants::OTP_LENGTH};
 
 pub trait Validate {
-    fn validate(&self, validator: &Validator) -> Result<(), HttpResponse<BoxBody>>;
+    fn validate(&self, validator: &Validator) -> Result<(), ErrorResponse>;
 }
 
 #[derive(Clone)]
@@ -40,43 +40,42 @@ impl Validator {
         }
     }
 
-    fn validate<F>(
-        regex: &Regex,
-        field: &str,
-        message_provider: F,
-    ) -> Result<(), HttpResponse<BoxBody>>
+    fn validate<F>(regex: &Regex, field: &str, message_provider: F) -> Result<(), ErrorResponse>
     where
         F: Fn() -> String,
     {
         if regex.is_match(field) {
             Ok(())
         } else {
-            Err(error_response(message_provider(), StatusCode::BAD_REQUEST))
+            Err(ErrorResponse::new(
+                message_provider(),
+                StatusCode::BAD_REQUEST,
+            ))
         }
     }
 
-    pub fn validate_email(&self, email: &str) -> Result<(), HttpResponse<BoxBody>> {
+    pub fn validate_email(&self, email: &str) -> Result<(), ErrorResponse> {
         Self::validate(&self.email_regex, email, || {
             format!("Invalid email: {}", email)
         })
     }
 
-    pub fn validate_password(&self, password: &str) -> Result<(), HttpResponse<BoxBody>> {
+    pub fn validate_password(&self, password: &str) -> Result<(), ErrorResponse> {
         Self::validate(&self.password_regex, password, || {
             "Invalid password: Needs to be between 8 and 20 characters (letters, numbers and symbols)".to_string()
         })
     }
 
-    pub fn validate_room_number(&self, room_number: &str) -> Result<(), HttpResponse<BoxBody>> {
+    pub fn validate_room_number(&self, room_number: &str) -> Result<(), ErrorResponse> {
         Self::validate(&self.room_number_regex, room_number, || {
             "Invalid room number: Needs to be numbers optionally followed by an upper case letter"
                 .to_string()
         })
     }
 
-    pub fn validate_otp(&self, otp: &str) -> Result<(), HttpResponse<BoxBody>> {
+    pub fn validate_otp(&self, otp: &str) -> Result<(), ErrorResponse> {
         if otp.len() != OTP_LENGTH {
-            return Err(error_response(
+            return Err(ErrorResponse::new(
                 format!("Invalid otp: Needs to be {OTP_LENGTH} characters long"),
                 StatusCode::BAD_REQUEST,
             ));
@@ -86,20 +85,20 @@ impl Validator {
         })
     }
 
-    pub fn validate_name(&self, name: &str) -> Result<(), HttpResponse<BoxBody>> {
+    pub fn validate_name(&self, name: &str) -> Result<(), ErrorResponse> {
         Self::validate(&self.name_regex, name, || {
             format!("Invalid name '{}'", name)
         })
     }
 
-    pub fn validate_ucn(&self, ucn: &str) -> Result<(), HttpResponse<BoxBody>> {
+    pub fn validate_ucn(&self, ucn: &str) -> Result<(), ErrorResponse> {
         Self::validate(&self.ucn_regex, ucn, || format!("Invalid ucn '{}'", ucn))
     }
 
     pub fn validate_id_card_issue_authority(
         &self,
         id_card_issue_authority: &str,
-    ) -> Result<(), HttpResponse<BoxBody>> {
+    ) -> Result<(), ErrorResponse> {
         Self::validate(
             &self.id_card_issue_authority_regex,
             id_card_issue_authority,
@@ -107,16 +106,13 @@ impl Validator {
         )
     }
 
-    pub fn validate_id_card_number(
-        &self,
-        id_card_number: &str,
-    ) -> Result<(), HttpResponse<BoxBody>> {
+    pub fn validate_id_card_number(&self, id_card_number: &str) -> Result<(), ErrorResponse> {
         Self::validate(&self.id_card_number_regex, id_card_number, || {
             format!("Invalid id card number '{}'", id_card_number)
         })
     }
 
-    pub fn validate_phone_number(&self, phone_number: &str) -> Result<(), HttpResponse<BoxBody>> {
+    pub fn validate_phone_number(&self, phone_number: &str) -> Result<(), ErrorResponse> {
         Self::validate(&self.phone_number_regex, phone_number, || {
             format!("Invalid phone number '{}'", phone_number)
         })
@@ -126,12 +122,12 @@ impl Validator {
         &self,
         option: &Option<T>,
         field_name: &str,
-    ) -> Result<(), HttpResponse<BoxBody>> {
+    ) -> Result<(), ErrorResponse> {
         if option.is_some() {
             return Ok(());
         }
 
-        Err(error_response(
+        Err(ErrorResponse::new(
             format!("No input for '{}'", field_name),
             StatusCode::BAD_REQUEST,
         ))
