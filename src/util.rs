@@ -1,4 +1,4 @@
-use std::{error::Error, future::Future};
+use std::error::Error;
 
 use actix_web::{
     body::BoxBody,
@@ -25,8 +25,11 @@ use crate::{
 macro_rules! process_request {
     ($state:expr, $input:expr, $service:expr, $status:expr) => {{
         use crate::util::serialize_output;
+        use crate::validation::Validate;
         use log::{error, info};
         let _: &crate::AppState = $state;
+        let _: &dyn Validate = $input;
+        let _: StatusCode = $status;
         const OPERATION_NAME: &str = stringify!($service);
         info!("Start {}", OPERATION_NAME);
         let validation_result = $input.validate(&$state.validator);
@@ -34,14 +37,14 @@ macro_rules! process_request {
             Ok(_) => {
                 let output = $service($state, $input).await;
                 if output.is_ok() {
-                    info!("End success {}", OPERATION_NAME);
+                    info!("End {} success", OPERATION_NAME);
                 } else {
-                    error!("End error {}", OPERATION_NAME);
+                    error!("End {} error", OPERATION_NAME);
                 }
                 serialize_output(output, $status)
             }
             Err(err) => {
-                error!("End validation error {}", OPERATION_NAME);
+                error!("End {} validation error", OPERATION_NAME);
                 err.into()
             }
         }

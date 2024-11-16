@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, fmt::Display};
 
 use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
 use sea_orm::DbErr;
@@ -18,6 +18,24 @@ pub struct ErrorResponse {
 impl ErrorResponse {
     pub fn new(error: String, status: StatusCode) -> Self {
         Self { error, status }
+    }
+}
+impl Display for ErrorResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&format!("[{}]{}", self.status, self.error))
+    }
+}
+impl Error for ErrorResponse {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        &self.error
+    }
+
+    fn cause(&self) -> Option<&dyn Error> {
+        self.source()
     }
 }
 impl From<DbErr> for ErrorResponse {

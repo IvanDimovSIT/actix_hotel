@@ -29,8 +29,6 @@ use crate::{
         refresh_token::refresh_token, register_user::register_user, reset_password::reset_password,
         send_otp::send_otp,
     },
-    util::serialize_output,
-    validation::Validate,
 };
 
 #[derive(OpenApi)]
@@ -77,7 +75,7 @@ pub fn config(cfg: &mut ServiceConfig) {
 #[utoipa::path(
     responses(
         (status = 201, description = "Successful Registration", body = RegisterUserOutput),
-        (status = 400, description = "Invalid input", body = ErrorReponse)
+        (status = 400, description = "Invalid input", body = ErrorResponse)
     ),
     request_body(
         content = RegisterUserInput,
@@ -103,8 +101,8 @@ pub async fn register_controller(
 #[utoipa::path(
     responses(
         (status = 200, description = "Successfully logged in", body = LoginOutput),
-        (status = 400, description = "Invalid input", body = ErrorReponse),
-        (status = 401, description = "Invalid credentials", body = ErrorReponse)
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse)
     ),
     request_body(
         content = LoginInput,
@@ -122,9 +120,9 @@ pub async fn login_controller(state: Data<AppState>, input: Json<LoginInput>) ->
 #[utoipa::path(
     responses(
         (status = 200, description = "Successful Promotion", body = PromoteOutput),
-        (status = 400, description = "Invalid input", body = ErrorReponse),
-        (status = 401, description = "Invalid credentials", body = ErrorReponse),
-        (status = 403, description = "Invalid credentials", body = ErrorReponse),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 403, description = "Invalid credentials", body = ErrorResponse),
     ),
     request_body(
         content = PromoteInput,
@@ -151,9 +149,9 @@ pub async fn promote_controller(
 #[utoipa::path(
     responses(
         (status = 200, description = "Successful Promotion", body = RefreshTokenOutput),
-        (status = 400, description = "Invalid input", body = ErrorReponse),
-        (status = 401, description = "Invalid credentials", body = ErrorReponse),
-        (status = 404, description = "User not found", body = ErrorReponse),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 404, description = "User not found", body = ErrorResponse),
     ),
     security(("bearer_auth" = []))
 )]
@@ -174,9 +172,9 @@ pub async fn refresh_token_controller(req: HttpRequest, state: Data<AppState>) -
 #[utoipa::path(
     responses(
         (status = 200, description = "Successfully changed password", body = ChangePasswordOutput),
-        (status = 400, description = "Invalid input", body = ErrorReponse),
-        (status = 401, description = "Invalid credentials", body = ErrorReponse),
-        (status = 403, description = "Invalid credentials", body = ErrorReponse),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 403, description = "Invalid credentials", body = ErrorResponse),
     ),
     request_body(
         content = ChangePasswordInput,
@@ -213,8 +211,8 @@ pub async fn change_password_controller(
 #[utoipa::path(
     responses(
         (status = 200, description = "Successfully changed password", body = ChangePasswordOutput),
-        (status = 400, description = "Invalid input", body = ErrorReponse),
-        (status = 404, description = "Invalid email", body = ErrorReponse),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 404, description = "Invalid email", body = ErrorResponse),
     ),
     request_body(
         content = SendOtpInput,
@@ -235,8 +233,8 @@ pub async fn send_otp_controller(
 #[utoipa::path(
     responses(
         (status = 200, description = "Successfully reset password", body = ResetPasswordOutput),
-        (status = 400, description = "Invalid input", body = ErrorReponse),
-        (status = 404, description = "Invalid email", body = ErrorReponse),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 404, description = "Invalid email", body = ErrorResponse),
     ),
     request_body(
         content = ResetPasswordInput,

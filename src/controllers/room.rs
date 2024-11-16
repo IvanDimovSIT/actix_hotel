@@ -49,9 +49,9 @@ pub fn config(cfg: &mut ServiceConfig) {
 #[utoipa::path(
     responses(
         (status = 201, description = "Successfully added room", body = AddRoomOutput),
-        (status = 400, description = "Invalid input", body = ErrorReponse),
-        (status = 401, description = "Invalid credentials", body = ErrorReponse),
-        (status = 403, description = "Invalid credentials", body = ErrorReponse),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 403, description = "Invalid credentials", body = ErrorResponse),
     ),
     request_body(
         content = AddRoomInput,
@@ -78,9 +78,9 @@ pub async fn add_room_controller(
 #[utoipa::path(
     responses(
         (status = 200, description = "Successfully fetched room", body = GetRoomOutput),
-        (status = 400, description = "Invalid input", body = ErrorReponse),
-        (status = 401, description = "Invalid credentials", body = ErrorReponse),
-        (status = 404, description = "Room not found", body = ErrorReponse),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 404, description = "Room not found", body = ErrorResponse),
     ),
     params(
         ("roomId" = String, Path, description = "Room id")

@@ -36,9 +36,9 @@ pub fn config(cfg: &mut ServiceConfig) {
 #[utoipa::path(
     responses(
         (status = 201, description = "Successfully added guest", body = AddGuestOutput),
-        (status = 400, description = "Invalid input", body = ErrorReponse),
-        (status = 401, description = "Invalid credentials", body = ErrorReponse),
-        (status = 403, description = "Invalid credentials", body = ErrorReponse),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 403, description = "Invalid credentials", body = ErrorResponse),
     ),
     request_body(
         content = AddGuestInput,

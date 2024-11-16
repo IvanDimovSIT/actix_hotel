@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use actix_web::{body::BoxBody, http::StatusCode, HttpRequest, HttpResponse};
+use actix_web::{http::StatusCode, HttpRequest};
 use bcrypt::{hash, verify};
 use jsonwebtoken::{
     decode, encode, get_current_timestamp, Algorithm, DecodingKey, EncodingKey, Header, Validation,

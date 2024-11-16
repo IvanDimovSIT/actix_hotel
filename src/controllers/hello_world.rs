@@ -17,7 +17,7 @@ pub fn config(cfg: &mut ServiceConfig) {
 #[utoipa::path(
     responses(
         (status = 200, description = "Successful Hello Response", body = String),
-        (status = 400, description = "Invalid name response", body = ErrorReponse)
+        (status = 400, description = "Invalid name response", body = ErrorResponse)
     ),
     params(
         ("name" = String, Path, description = "Name to greet")
