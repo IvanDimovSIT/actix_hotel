@@ -81,12 +81,12 @@ where
 
 pub async fn find_room_by_id<T>(
     db: &T,
-    id: Uuid,
+    room_id: Uuid,
 ) -> Result<Option<(Model, Vec<crate::persistence::bed::Model>)>, DbErr>
 where
     T: ConnectionTrait,
 {
-    let room_option = Entity::find_by_id(id).one(db).await?;
+    let room_option = Entity::find_by_id(room_id).one(db).await?;
 
     if room_option.is_none() {
         return Ok(None);

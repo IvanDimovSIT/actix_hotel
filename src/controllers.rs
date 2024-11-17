@@ -22,6 +22,7 @@ pub mod room;
     auth::send_otp_controller,
     room::add_room_controller,
     room::get_room_controller,
+    room::delete_room_controller,
     guest::add_guest_controller
 ))]
 pub struct ApiDoc;

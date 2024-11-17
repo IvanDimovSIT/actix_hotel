@@ -1,5 +1,5 @@
 use actix_web::{
-    get,
+    delete, get,
     http::StatusCode,
     post,
     web::{Data, Json, Path, ServiceConfig},
@@ -13,19 +13,20 @@ use crate::{
         error_response::ErrorResponse,
         room::{
             add_room::{AddRoomInput, AddRoomOutput},
+            delete_room::{DeleteRoomInput, DeleteRoomOutput},
             get_room::{GetRoomInput, GetRoomOutput},
             Bed,
         },
     },
     app_state::AppState,
     persistence::{bed::BedSize, room::BathroomType, user::Role},
-    services::room::{add_room::add_room, get_room::get_room},
+    services::room::{add_room::add_room, delete_room::delete_room, get_room::get_room},
     util::process_request_secured,
 };
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(add_room_controller, get_room_controller),
+    paths(add_room_controller, get_room_controller, delete_room_controller),
     components(schemas(
         ErrorResponse,
         Bed,
@@ -33,6 +34,8 @@ use crate::{
         AddRoomOutput,
         GetRoomInput,
         GetRoomOutput,
+        DeleteRoomInput,
+        DeleteRoomOutput,
         BathroomType,
         BedSize
     ))
@@ -42,6 +45,7 @@ pub struct RoomApiDoc;
 pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(add_room_controller);
     cfg.service(get_room_controller);
+    cfg.service(delete_room_controller);
 }
 
 #[utoipa::path(
@@ -103,6 +107,40 @@ pub async fn get_room_controller(
         &state,
         input,
         get_room,
+        StatusCode::OK,
+    )
+    .await
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Successfully deleted room", body = DeleteRoomOutput),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 403, description = "Invalid credentials", body = ErrorResponse),
+        (status = 404, description = "Room not found", body = ErrorResponse),
+    ),
+    params(
+        ("roomId" = String, Path, description = "Room id")
+    ),
+    security(("bearer_auth" = []))
+)]
+#[delete("/room/{roomId}")]
+pub async fn delete_room_controller(
+    req: HttpRequest,
+    state: Data<AppState>,
+    path: Path<Uuid>,
+) -> impl Responder {
+    let input = DeleteRoomInput {
+        room_id: path.into_inner(),
+    };
+
+    process_request_secured(
+        req,
+        &[Role::Admin],
+        &state,
+        input,
+        delete_room,
         StatusCode::OK,
     )
     .await

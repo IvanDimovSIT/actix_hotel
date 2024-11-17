@@ -10,6 +10,7 @@ use crate::{
 use super::error_response::ErrorResponse;
 
 pub mod add_room;
+pub mod delete_room;
 pub mod get_room;
 
 const MIN_BED_COUNT: i16 = 1;

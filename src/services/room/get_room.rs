@@ -22,11 +22,25 @@ async fn find_room(
 ) -> Result<(room::Model, Vec<bed::Model>), ErrorResponse> {
     let room_option = find_room_by_id(app_state.db.as_ref(), input.room_id).await?;
 
-    require_some(
+    let room_beds = require_some(
         room_option,
         || format!("Room with id '{}' not found", input.room_id),
         StatusCode::NOT_FOUND,
-    )
+    );
+
+    match &room_beds {
+        Ok((room, _beds)) => {
+            if room.is_deleted {
+                return Err(ErrorResponse::new(
+                    format!("Room with id '{}' not found", input.room_id),
+                    StatusCode::NOT_FOUND,
+                ));
+            }
+        }
+        _ => {}
+    }
+
+    room_beds
 }
 
 fn convert_room_to_output(room_beds: (room::Model, Vec<bed::Model>)) -> GetRoomOutput {
