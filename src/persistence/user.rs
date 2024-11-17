@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use sea_orm::prelude::StringLen;
 use sea_orm::ActiveModelBehavior;
 use sea_orm::ColumnTrait;

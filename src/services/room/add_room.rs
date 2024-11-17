@@ -23,7 +23,7 @@ async fn check_room_number_not_used(
     db: &DatabaseConnection,
     input: &AddRoomInput,
 ) -> Result<(), ErrorResponse> {
-    let result = room::find_by_room_number(db, &input.room_number).await;
+    let result = room::find_first_by_room_number_not_deleted(db, &input.room_number).await;
     if let Err(err) = result {
         return Err(handle_db_error(err));
     }

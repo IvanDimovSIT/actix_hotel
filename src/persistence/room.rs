@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use sea_orm::prelude::StringLen;
 use sea_orm::ColumnTrait;
 use sea_orm::ConnectionTrait;
@@ -9,7 +7,6 @@ use sea_orm::EntityTrait;
 use sea_orm::ModelTrait;
 use sea_orm::PrimaryKeyTrait;
 use sea_orm::QueryFilter;
-use sea_orm::QuerySelect;
 use sea_orm::Related;
 use sea_orm::RelationDef;
 use sea_orm::RelationTrait;
@@ -48,7 +45,7 @@ pub struct Model {
     pub id: Uuid,
     pub price: i64,
     pub floor: i16,
-    #[sea_orm(column_type = "String(StringLen::N(16))", unique)]
+    #[sea_orm(column_type = "String(StringLen::N(16))")]
     pub room_number: String,
     pub bathroom_type: BathroomType,
     pub is_deleted: bool,
@@ -67,12 +64,16 @@ impl Related<super::bed::Entity> for Entity {
     }
 }
 
-pub async fn find_by_room_number<T>(db: &T, room_number: &str) -> Result<Option<Model>, DbErr>
+pub async fn find_first_by_room_number_not_deleted<T>(
+    db: &T,
+    room_number: &str,
+) -> Result<Option<Model>, DbErr>
 where
     T: ConnectionTrait,
 {
     let room = crate::persistence::room::Entity::find()
         .filter(crate::persistence::room::Column::RoomNumber.eq(room_number))
+        .filter(crate::persistence::room::Column::IsDeleted.eq(false))
         .one(db)
         .await?;
 

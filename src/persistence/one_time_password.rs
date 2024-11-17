@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use sea_orm::prelude::DateTime;
 use sea_orm::ColumnTrait;
 use sea_orm::ConnectionTrait;
