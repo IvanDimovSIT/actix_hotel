@@ -12,6 +12,9 @@ use sea_orm::EntityTrait;
 use sea_orm::EnumIter;
 use sea_orm::PrimaryKeyTrait;
 use sea_orm::QueryFilter;
+use sea_orm::Related;
+use sea_orm::RelationDef;
+use sea_orm::RelationTrait;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, PartialEq, Eq, Default, DeriveEntityModel)]
@@ -46,8 +49,31 @@ pub struct Model {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
-impl ActiveModelBehavior for ActiveModel {}
+pub enum Relation {
+    #[sea_orm(has_many = "super::booking::Entity")]
+    Booking,
+    #[sea_orm(has_many = "super::booking_guest::Entity")]
+    BookingGuest,   
+}
+impl Related<super::booking_guest::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::BookingGuest.def()
+    }
+}
+
+impl Related<super::booking::Entity> for Entity {
+    fn to() -> RelationDef {
+        super::booking_guest::Relation::Booking.def()
+    }
+
+    fn via() -> Option<RelationDef> {
+        Some(super::booking_guest::Relation::Guest.def().rev())
+    }
+}
+
+impl ActiveModelBehavior for ActiveModel {
+
+}
 
 pub async fn find_first_by_ucn_or_card_number_or_phone<T>(
     db: &T,

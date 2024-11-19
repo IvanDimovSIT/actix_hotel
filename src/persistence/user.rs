@@ -44,6 +44,10 @@ pub enum Role {
 pub enum Relation {
     #[sea_orm(has_one = "super::one_time_password::Entity")]
     OneTimePassword,
+    #[sea_orm(has_one = "super::booking::Entity")]
+    AdminBooking,
+    #[sea_orm(has_one = "super::booking::Entity")]
+    UserBooking,
 }
 impl ActiveModelBehavior for ActiveModel {}
 

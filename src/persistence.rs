@@ -14,6 +14,8 @@ use crate::{
 };
 
 pub mod bed;
+pub mod booking;
+pub mod booking_guest;
 pub mod guest;
 pub mod one_time_password;
 pub mod room;
@@ -102,7 +104,7 @@ async fn initialise_admin(db: &DatabaseConnection, env: &EnvironmentVariables) {
     info!("Initialised admin user with email: '{email}' and password: '{raw_password}' (change password immediately)");
 }
 
-async fn intitialise_table<E>(db: &DatabaseConnection, entity: E)
+async fn create_table<E>(db: &DatabaseConnection, entity: E)
 where
     E: EntityTrait,
 {
@@ -116,11 +118,14 @@ where
 }
 
 pub async fn initialise_db(db: &DatabaseConnection, env: &EnvironmentVariables) {
-    intitialise_table(db, user::Entity).await;
-    intitialise_table(db, room::Entity).await;
-    intitialise_table(db, bed::Entity).await;
-    intitialise_table(db, one_time_password::Entity).await;
-    intitialise_table(db, guest::Entity).await;
+    create_table(db, user::Entity).await;
+    create_table(db, room::Entity).await;
+    create_table(db, bed::Entity).await;
+    create_table(db, one_time_password::Entity).await;
+    create_table(db, guest::Entity).await;
+    create_table(db, booking::Entity).await;
+    create_table(db, booking_guest::Entity).await;
+    
 
     initialise_admin(db, env).await;
 }
