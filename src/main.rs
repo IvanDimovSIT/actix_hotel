@@ -1,10 +1,11 @@
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use app_state::AppState;
-use constants::REST_HOST;
+use constants::{APP_DEFAULT_LOGGING_LEVEL, REST_HOST};
 use controllers::{
     auth, guest,
     hello_world::{self},
     room,
+    booking
 };
 use utoipa::OpenApi;
 use utoipa_swagger_ui::{Config, SwaggerUi};
@@ -21,7 +22,7 @@ mod validation;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or(APP_DEFAULT_LOGGING_LEVEL));
     let app_state = AppState::load().await;
     HttpServer::new(move || {
         App::new()
@@ -36,6 +37,7 @@ async fn main() -> std::io::Result<()> {
             .configure(auth::config)
             .configure(room::config)
             .configure(guest::config)
+            .configure(booking::config)
     })
     .bind(REST_HOST)?
     .run()

@@ -1,10 +1,10 @@
 use std::{collections::HashMap, sync::Arc};
 
 use log::{error, info};
-use sea_orm::{Database, DatabaseConnection};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 
 use crate::{
-    constants::{ENV_DATABASE_URL, ENV_JWT_SECRET, ENV_JWT_VALIDITY_SECS, ENV_OTP_VALIDITY_SECS},
+    constants::{DB_LOGGING_LEVEL, ENV_DATABASE_URL, ENV_JWT_SECRET, ENV_JWT_VALIDITY_SECS, ENV_OTP_VALIDITY_SECS},
     persistence::initialise_db,
     services::email_service::EmailService,
     validation::Validator,
@@ -83,7 +83,10 @@ impl AppState {
 async fn load_databse(env: &EnvironmentVariables) -> DatabaseConnection {
     let database_url = env.get(ENV_DATABASE_URL);
 
-    let db = Database::connect(database_url)
+    let mut database_config = ConnectOptions::new(database_url);
+    database_config.sqlx_logging_level(DB_LOGGING_LEVEL);
+
+    let db = Database::connect(database_config)
         .await
         .expect("Failed to connect to database");
 

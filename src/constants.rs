@@ -1,4 +1,9 @@
+use log::LevelFilter;
+
 pub const REST_HOST: (&str, u16) = ("127.0.0.1", 8080);
+
+pub const APP_DEFAULT_LOGGING_LEVEL: &str = "info";
+pub const DB_LOGGING_LEVEL: LevelFilter = LevelFilter::Debug;
 
 pub const BCRYPT_COST: u32 = 10;
 pub const BEARER_PREFIX: &str = "Bearer ";

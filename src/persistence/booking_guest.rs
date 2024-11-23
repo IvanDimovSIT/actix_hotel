@@ -1,4 +1,3 @@
-
 use sea_orm::ActiveModelBehavior;
 use sea_orm::DeriveEntityModel;
 use sea_orm::DerivePrimaryKey;
@@ -20,7 +19,6 @@ pub struct Model {
     pub booking_id: Uuid,
 }
 
-
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
@@ -28,7 +26,7 @@ pub enum Relation {
         from = "Column::BookingId",
         to = "super::booking::Column::Id",
         on_update = "Cascade",
-        on_delete = "Cascade",
+        on_delete = "Cascade"
     )]
     Booking,
     #[sea_orm(
@@ -36,7 +34,7 @@ pub enum Relation {
         from = "Column::GuestId",
         to = "super::guest::Column::Id",
         on_update = "Cascade",
-        on_delete = "Cascade",
+        on_delete = "Cascade"
     )]
     Guest,
 }

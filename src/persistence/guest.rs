@@ -53,7 +53,7 @@ pub enum Relation {
     #[sea_orm(has_many = "super::booking::Entity")]
     Booking,
     #[sea_orm(has_many = "super::booking_guest::Entity")]
-    BookingGuest,   
+    BookingGuest,
 }
 impl Related<super::booking_guest::Entity> for Entity {
     fn to() -> RelationDef {
@@ -71,9 +71,7 @@ impl Related<super::booking::Entity> for Entity {
     }
 }
 
-impl ActiveModelBehavior for ActiveModel {
-
-}
+impl ActiveModelBehavior for ActiveModel {}
 
 pub async fn find_first_by_ucn_or_card_number_or_phone<T>(
     db: &T,

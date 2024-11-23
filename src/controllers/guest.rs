@@ -22,7 +22,7 @@ use crate::{
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(),
+    paths(add_guest_controller),
     components(schemas(ErrorResponse, GuestIdCard, AddGuestInput, AddGuestOutput))
 )]
 pub struct GuestApiDoc;

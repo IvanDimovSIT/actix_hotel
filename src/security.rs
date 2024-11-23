@@ -5,6 +5,7 @@ use bcrypt::{hash, verify};
 use jsonwebtoken::{
     decode, encode, get_current_timestamp, Algorithm, DecodingKey, EncodingKey, Header, Validation,
 };
+use log::error;
 use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -61,11 +62,23 @@ pub trait WithClaims {
 }
 
 pub fn hash_password(password: &str) -> String {
-    hash(password, BCRYPT_COST).expect("Error hashing password")
+    match hash(password, BCRYPT_COST) {
+        Ok(ok) => ok,
+        Err(err) => {
+            error!("Error hashing password: {err}");
+            panic!("Error hashing password");
+        },
+    }
 }
 
 pub fn passwords_match(raw_password: &str, password_hash: &str) -> bool {
-    verify(raw_password, password_hash).expect("Error verifying password")
+    match verify(raw_password, password_hash) {
+        Ok(ok) => ok,
+        Err(err) => {
+            error!("Error verifying password: {err}");
+            panic!("Error verifying password");
+        },
+    }
 }
 
 pub fn generate_otp() -> String {

@@ -1,5 +1,5 @@
 use actix_web::http::StatusCode;
-use log::info;
+use log::{error, info};
 use sea_orm::{
     ActiveModelTrait, ActiveValue, ConnectionTrait, DatabaseConnection, DbErr, EntityTrait, Schema,
 };
@@ -71,6 +71,7 @@ fn db_error_to_string(error: DbErr) -> String {
 }
 
 pub fn handle_db_error(error: DbErr) -> ErrorResponse {
+    error!("Database error: {error}");
     ErrorResponse::new(db_error_to_string(error), StatusCode::INTERNAL_SERVER_ERROR)
 }
 
@@ -113,6 +114,7 @@ where
     let statement = builder.build(schema.create_table_from_entity(entity).if_not_exists());
     let result = db.execute(statement).await;
     if let Err(err) = result {
+        error!("Can't create enitiy:{}", err);
         panic!("Can't create enitiy:{}", err);
     }
 }
@@ -125,7 +127,6 @@ pub async fn initialise_db(db: &DatabaseConnection, env: &EnvironmentVariables) 
     create_table(db, guest::Entity).await;
     create_table(db, booking::Entity).await;
     create_table(db, booking_guest::Entity).await;
-    
 
     initialise_admin(db, env).await;
 }

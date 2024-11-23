@@ -6,6 +6,7 @@ use utoipa::openapi::{
 use crate::constants::{API_DESCRIPTION, API_NAME, API_VERSION};
 
 pub mod auth;
+pub mod booking;
 pub mod guest;
 pub mod hello_world;
 pub mod room;
@@ -23,7 +24,8 @@ pub mod room;
     room::add_room_controller,
     room::get_room_controller,
     room::delete_room_controller,
-    guest::add_guest_controller
+    guest::add_guest_controller,
+    booking::find_unoccupied_rooms_controller
 ))]
 pub struct ApiDoc;
 
@@ -50,6 +52,7 @@ impl ApiDoc {
         api.merge(<auth::AuthApiDoc as utoipa::OpenApi>::openapi());
         api.merge(<room::RoomApiDoc as utoipa::OpenApi>::openapi());
         api.merge(<guest::GuestApiDoc as utoipa::OpenApi>::openapi());
+        api.merge(<booking::BookingApiDoc as utoipa::OpenApi>::openapi());
         api.info = Info::new(API_NAME, API_VERSION);
         api.info.description = Some(API_DESCRIPTION.to_string());
 
