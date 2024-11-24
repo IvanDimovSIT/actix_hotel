@@ -53,7 +53,6 @@ impl Validate for FindUnoccupiedRoomsInput {
         }
 
         if let Some(max) = self.maximum_capacity {
-            println!("max{max} MAX{MAX_CAPACITY}");
             if max > MAX_CAPACITY {
                 return Err(ErrorResponse::new(
                     format!("Maximum capacity: {MAX_CAPACITY}").to_string(),
@@ -61,7 +60,6 @@ impl Validate for FindUnoccupiedRoomsInput {
                 ));
             }
 
-            println!("max{max} MIN{MIN_CAPACITY}");
             if max < MIN_CAPACITY {
                 return Err(ErrorResponse::new(
                     format!("Minimum capacity: {MIN_CAPACITY}").to_string(),

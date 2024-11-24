@@ -1,4 +1,4 @@
-use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
+use actix_web::http::StatusCode;
 
 use crate::{
     api::{
@@ -10,8 +10,7 @@ use crate::{
     },
     app_state::AppState,
     persistence::{
-        bed, handle_db_error,
-        room::{self, find_room_by_id},
+        bed, room::{self, find_room_by_id},
     },
     util::require_some,
 };

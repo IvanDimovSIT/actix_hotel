@@ -1,4 +1,4 @@
-use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
+use actix_web::http::StatusCode;
 use sea_orm::{
     sqlx::types::chrono::Utc, ActiveModelTrait, ActiveValue, DatabaseTransaction, IntoActiveModel,
     TransactionTrait,
@@ -11,7 +11,6 @@ use crate::{
     },
     app_state::AppState,
     persistence::{
-        handle_db_error,
         one_time_password::{self, delete_all_for_user, find_otp_and_user_for_user_email},
         user,
     },

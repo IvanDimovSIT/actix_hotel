@@ -1,5 +1,5 @@
-use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
-use sea_orm::{ActiveModelTrait, ActiveValue, DatabaseConnection};
+use actix_web::http::StatusCode;
+use sea_orm::{ActiveModelTrait, ActiveValue};
 use uuid::Uuid;
 
 use crate::{

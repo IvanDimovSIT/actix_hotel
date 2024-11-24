@@ -46,6 +46,9 @@ async fn apply_filters(
 ) -> Result<Vec<Uuid>, ErrorResponse> {
     let mut free_room_ids = Vec::with_capacity(100);
     for id in room_ids {
+        if !check_bed_capacity(app_state, *id, input).await? {
+            continue;
+        }
         if is_room_occupied_for_period(
             app_state.db.as_ref(),
             *id,
@@ -54,9 +57,6 @@ async fn apply_filters(
         )
         .await?
         {
-            continue;
-        }
-        if !check_bed_capacity(app_state, *id, input).await? {
             continue;
         }
 

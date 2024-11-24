@@ -1,13 +1,13 @@
 use std::collections::HashSet;
 
-use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
+use actix_web::http::StatusCode;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
     api::error_response::ErrorResponse,
-    persistence::{bed::BedSize, room::BathroomType},
+    persistence::room::BathroomType,
     security::WithClaims,
     validation::{Validate, Validator},
 };
