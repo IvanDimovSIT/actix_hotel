@@ -4,9 +4,11 @@ use sea_orm::ConnectionTrait;
 use sea_orm::DbErr;
 use sea_orm::DerivePrimaryKey;
 use sea_orm::EntityTrait;
+use sea_orm::FromQueryResult;
 use sea_orm::ModelTrait;
 use sea_orm::PrimaryKeyTrait;
 use sea_orm::QueryFilter;
+use sea_orm::QuerySelect;
 use sea_orm::Related;
 use sea_orm::RelationDef;
 use sea_orm::RelationTrait;
@@ -105,4 +107,26 @@ where
     let beds = room.find_related(bed::Entity).all(db).await?;
 
     Ok(Some((room, beds)))
+}
+
+pub async fn find_all_room_ids_not_deleted<T>(db: &T) -> Result<Vec<Uuid>, DbErr>
+where
+    T: ConnectionTrait,
+{
+    #[derive(Debug, FromQueryResult)]
+    struct RoomId{
+        r_id: Uuid
+    }
+
+    Ok(Entity::find()
+        .select_only()
+        .column_as(Column::Id, "r_id")
+        .filter(Column::IsDeleted.eq(false))
+        .into_model::<RoomId>()
+        .all(db)
+        .await?
+        .iter()
+        .map(|r| r.r_id)
+        .collect()
+    )
 }

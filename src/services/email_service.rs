@@ -11,7 +11,6 @@ use log::error;
 use crate::api::error_response::ErrorResponse;
 use crate::app_state::EnvironmentVariables;
 use crate::constants::{ENV_EMAIL_PASSWORD, ENV_EMAIL_RELAY, ENV_EMAIL_USERNAME};
-use crate::persistence::handle_db_error;
 use crate::util::error_to_response;
 
 pub struct EmailService {

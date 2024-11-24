@@ -1,4 +1,3 @@
-use sea_orm::{ColumnTrait, EntityTrait, ModelTrait, QueryFilter};
 use uuid::Uuid;
 
 use crate::{
@@ -8,34 +7,23 @@ use crate::{
     },
     app_state::AppState,
     persistence::{
-        self, bed,
-        booking::{self, is_room_occupied_for_period},
+        bed,
+        booking::is_room_occupied_for_period,
         room,
     },
 };
 
-async fn find_rooms(app_state: &AppState) -> Result<Vec<room::Model>, ErrorResponse> {
-    Ok(room::Entity::find()
-        .filter(room::Column::IsDeleted.eq(false))
-        .all(app_state.db.as_ref())
-        .await?)
-}
-
 async fn check_bed_capacity(
     app_state: &AppState,
-    room: &room::Model,
+    room_id: Uuid,
     input: &FindUnoccupiedRoomsInput,
 ) -> Result<bool, ErrorResponse> {
     if input.minimum_capacity.is_none() && input.maximum_capacity.is_none() {
         return Ok(true);
     }
 
-    let beds = room
-        .find_related(bed::Entity)
-        .all(app_state.db.as_ref())
+    let capacity = bed::find_total_bed_capacity_for_room(app_state.db.as_ref(), room_id)
         .await?;
-
-    let capacity: i16 = beds.iter().map(|bed| bed.total_capacity).sum();
 
     if let Some(max) = input.maximum_capacity {
         if capacity > max {
@@ -54,13 +42,13 @@ async fn check_bed_capacity(
 async fn apply_filters(
     app_state: &AppState,
     input: &FindUnoccupiedRoomsInput,
-    rooms: Vec<room::Model>,
+    room_ids: &[Uuid],
 ) -> Result<Vec<Uuid>, ErrorResponse> {
     let mut free_room_ids = Vec::with_capacity(100);
-    for room in rooms {
+    for id in room_ids {
         if is_room_occupied_for_period(
             app_state.db.as_ref(),
-            room.id,
+            *id,
             input.start_date,
             input.end_date,
         )
@@ -68,11 +56,11 @@ async fn apply_filters(
         {
             continue;
         }
-        if !check_bed_capacity(app_state, &room, input).await? {
+        if !check_bed_capacity(app_state, *id, input).await? {
             continue;
         }
 
-        free_room_ids.push(room.id);
+        free_room_ids.push(*id);
     }
 
     Ok(free_room_ids)
@@ -82,10 +70,12 @@ pub async fn find_unoccupied_rooms(
     app_state: &AppState,
     input: FindUnoccupiedRoomsInput,
 ) -> Result<FindUnoccupiedRoomsOutput, ErrorResponse> {
-    let rooms = find_rooms(app_state).await?;
-    let room_ids = apply_filters(app_state, &input, rooms).await?;
+    let room_ids = room::find_all_room_ids_not_deleted(app_state.db.as_ref()).await?;
+    let free_room_ids = apply_filters(app_state, &input, &room_ids).await?;
 
-    let output = FindUnoccupiedRoomsOutput { room_ids };
+    let output = FindUnoccupiedRoomsOutput { 
+        room_ids: free_room_ids 
+    };
 
     Ok(output)
 }

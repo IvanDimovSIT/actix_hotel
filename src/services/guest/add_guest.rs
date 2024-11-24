@@ -1,4 +1,4 @@
-use actix_web::{body::BoxBody, http::StatusCode, HttpResponse};
+use actix_web::http::StatusCode;
 use log::error;
 use sea_orm::{ActiveModelTrait, ActiveValue};
 use uuid::Uuid;
@@ -9,10 +9,9 @@ use crate::{
         guest::add_guest::{AddGuestInput, AddGuestOutput},
     },
     app_state::AppState,
-    persistence::{
-        guest::{self, find_first_by_ucn_or_card_number_or_phone, ActiveModel},
-        handle_db_error,
-    },
+    persistence::
+        guest::{self, find_first_by_ucn_or_card_number_or_phone, ActiveModel}
+    ,
 };
 
 const INVALID_STATE: &str = "Invalid state when searching for existing ucn or id card number";

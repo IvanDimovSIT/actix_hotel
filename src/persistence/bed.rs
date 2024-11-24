@@ -1,7 +1,13 @@
 use sea_orm::prelude::StringLen;
+use sea_orm::ColumnTrait;
+use sea_orm::ConnectionTrait;
+use sea_orm::DbErr;
 use sea_orm::DerivePrimaryKey;
 use sea_orm::EntityTrait;
+use sea_orm::FromQueryResult;
 use sea_orm::PrimaryKeyTrait;
+use sea_orm::QueryFilter;
+use sea_orm::QuerySelect;
 use sea_orm::Related;
 use sea_orm::RelationDef;
 use sea_orm::RelationTrait;
@@ -70,4 +76,30 @@ impl Related<super::room::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Room.def()
     }
+}
+
+
+pub async fn find_total_bed_capacity_for_room<T>(
+    db: &T,
+    room_id: Uuid
+) -> Result<i16, DbErr>
+where
+    T: ConnectionTrait,
+{
+    #[derive(Debug, FromQueryResult)]
+    struct BedTotalCapacity{
+        sum_capacity: i64
+    }
+
+    let result = Entity::find()
+    .filter(Column::RoomId.eq(room_id))
+    .select_only()
+    .column_as(Column::TotalCapacity.sum(), "sum_capacity")
+    .into_model::<BedTotalCapacity>() 
+    .one(db)
+    .await?
+    .unwrap_or(BedTotalCapacity { sum_capacity: 0 })
+    .sum_capacity; 
+
+    Ok(result as i16)
 }

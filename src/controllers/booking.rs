@@ -1,7 +1,7 @@
 use actix_web::{
     get,
     http::StatusCode,
-    web::{Data, Json, Query, ServiceConfig},
+    web::{Data, Query, ServiceConfig},
     HttpRequest, Responder,
 };
 use utoipa::OpenApi;
@@ -10,10 +10,6 @@ use crate::{
     api::{
         booking::find_unoccupied_rooms::{FindUnoccupiedRoomsInput, FindUnoccupiedRoomsOutput},
         error_response::ErrorResponse,
-        guest::{
-            add_guest::{AddGuestInput, AddGuestOutput},
-            GuestIdCard,
-        },
     },
     app_state::AppState,
     persistence::user::Role,
