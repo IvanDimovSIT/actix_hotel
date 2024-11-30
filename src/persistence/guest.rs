@@ -10,8 +10,10 @@ use sea_orm::DerivePrimaryKey;
 use sea_orm::DeriveRelation;
 use sea_orm::EntityTrait;
 use sea_orm::EnumIter;
+use sea_orm::FromQueryResult;
 use sea_orm::PrimaryKeyTrait;
 use sea_orm::QueryFilter;
+use sea_orm::QuerySelect;
 use sea_orm::Related;
 use sea_orm::RelationDef;
 use sea_orm::RelationTrait;
@@ -96,6 +98,53 @@ where
         ])
         .one(db)
         .await?;
+
+    Ok(result)
+}
+
+pub async fn find_all_ids_by_criteria<T>(
+    db: &T,
+    first_name: Option<String>,
+    last_name: Option<String>,
+    phone_number: Option<String>,
+    date_of_birth: Option<Date>,
+    ucn: Option<String>,
+) -> Result<Vec<Uuid>, DbErr>
+where
+    T: ConnectionTrait,
+{
+    #[derive(Debug, FromQueryResult)]
+    struct GuestId{
+        g_id: Uuid
+    }
+
+    let mut query = crate::persistence::guest::Entity::find()
+        .select_only()
+        .column_as(Column::Id, "g_id");
+    
+    if let Some(some) = first_name {
+        query = query.filter(crate::persistence::guest::Column::FirstName.eq(some))
+    }
+    if let Some(some) = last_name {
+        query = query.filter(crate::persistence::guest::Column::LastName.eq(some))
+    }
+    if let Some(some) = phone_number {
+        query = query.filter(crate::persistence::guest::Column::PhoneNumber.eq(some))
+    }
+    if let Some(some) = date_of_birth {
+        query = query.filter(crate::persistence::guest::Column::DateOfBirth.eq(some))
+    }
+    if let Some(some) = ucn {
+        query = query.filter(crate::persistence::guest::Column::Ucn.eq(some))
+    }
+
+    let result = query
+        .into_model::<GuestId>()
+        .all(db)
+        .await?
+        .into_iter()
+        .map(|guest| guest.g_id)
+        .collect();
 
     Ok(result)
 }

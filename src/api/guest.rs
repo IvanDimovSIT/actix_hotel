@@ -8,6 +8,7 @@ use crate::validation::{Validate, Validator};
 use super::error_response::ErrorResponse;
 
 pub mod add_guest;
+pub mod find_guest;
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]

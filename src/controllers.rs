@@ -25,6 +25,7 @@ pub mod room;
     room::get_room_controller,
     room::delete_room_controller,
     guest::add_guest_controller,
+    guest::find_guest_controller,
     booking::find_unoccupied_rooms_controller
 ))]
 pub struct ApiDoc;
