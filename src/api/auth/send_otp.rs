@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use utoipa::{openapi::schema, ToSchema};
+use utoipa::ToSchema;
 
 use crate::{
     api::error_response::ErrorResponse,

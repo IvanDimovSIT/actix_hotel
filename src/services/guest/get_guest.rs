@@ -41,29 +41,21 @@ fn id_card_error(guest_id: Uuid) -> impl Fn() -> String {
     }
 }
 
+fn require_id_card_data<T>(option: Option<T>, guest_id: Uuid) -> Result<T, ErrorResponse> {
+    require_some(
+        option,
+        id_card_error(guest_id),
+        StatusCode::INTERNAL_SERVER_ERROR,
+    )
+}
+
 fn convert_model_to_output(guest: guest::Model) -> Result<GetGuestOutput, ErrorResponse> {
     let id_card = if guest.id_card_number.is_some() {
         let id_card_number = guest.id_card_number.unwrap();
-        let ucn = require_some(
-            guest.ucn,
-            id_card_error(guest.id),
-            StatusCode::INTERNAL_SERVER_ERROR,
-        )?;
-        let issue_authority = require_some(
-            guest.id_card_issue_authority,
-            id_card_error(guest.id),
-            StatusCode::INTERNAL_SERVER_ERROR,
-        )?;
-        let issue_date = require_some(
-            guest.id_card_issue_date,
-            id_card_error(guest.id),
-            StatusCode::INTERNAL_SERVER_ERROR,
-        )?;
-        let validity = require_some(
-            guest.id_card_validity,
-            id_card_error(guest.id),
-            StatusCode::INTERNAL_SERVER_ERROR,
-        )?;
+        let ucn = require_id_card_data(guest.ucn, guest.id)?;
+        let issue_authority = require_id_card_data(guest.id_card_issue_authority, guest.id)?;
+        let issue_date = require_id_card_data(guest.id_card_issue_date, guest.id)?;
+        let validity = require_id_card_data(guest.id_card_validity, guest.id)?;
 
         Some(GuestIdCard {
             ucn,

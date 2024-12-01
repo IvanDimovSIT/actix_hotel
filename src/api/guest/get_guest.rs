@@ -1,5 +1,4 @@
-use actix_web::http::StatusCode;
-use sea_orm::{prelude::Date, sqlx::types::chrono::Utc};
+use sea_orm::prelude::Date;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
