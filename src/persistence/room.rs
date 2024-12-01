@@ -114,8 +114,8 @@ where
     T: ConnectionTrait,
 {
     #[derive(Debug, FromQueryResult)]
-    struct RoomId{
-        r_id: Uuid
+    struct RoomId {
+        r_id: Uuid,
     }
 
     Ok(Entity::find()
@@ -127,6 +127,5 @@ where
         .await?
         .iter()
         .map(|r| r.r_id)
-        .collect()
-    )
+        .collect())
 }

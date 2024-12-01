@@ -1,5 +1,11 @@
-use crate::{api::{error_response::ErrorResponse, guest::find_guest::{FindGuestInput, FindGuestOutput}}, app_state::AppState, persistence::guest};
-
+use crate::{
+    api::{
+        error_response::ErrorResponse,
+        guest::find_guest::{FindGuestInput, FindGuestOutput},
+    },
+    app_state::AppState,
+    persistence::guest,
+};
 
 pub async fn find_guest(
     app_state: &AppState,
@@ -11,8 +17,9 @@ pub async fn find_guest(
         input.last_name,
         input.phone_number,
         input.date_of_birth,
-        input.ucn
-    ).await?;
-    
-    Ok(FindGuestOutput{guest_ids})
+        input.ucn,
+    )
+    .await?;
+
+    Ok(FindGuestOutput { guest_ids })
 }

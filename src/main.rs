@@ -2,10 +2,9 @@ use actix_web::{middleware::Logger, web, App, HttpServer};
 use app_state::AppState;
 use constants::{APP_DEFAULT_LOGGING_LEVEL, REST_HOST};
 use controllers::{
-    auth, guest,
+    auth, booking, guest,
     hello_world::{self},
     room,
-    booking
 };
 use utoipa::OpenApi;
 use utoipa_swagger_ui::{Config, SwaggerUi};

@@ -78,28 +78,24 @@ impl Related<super::room::Entity> for Entity {
     }
 }
 
-
-pub async fn find_total_bed_capacity_for_room<T>(
-    db: &T,
-    room_id: Uuid
-) -> Result<i16, DbErr>
+pub async fn find_total_bed_capacity_for_room<T>(db: &T, room_id: Uuid) -> Result<i16, DbErr>
 where
     T: ConnectionTrait,
 {
     #[derive(Debug, FromQueryResult)]
-    struct BedTotalCapacity{
-        sum_capacity: i64
+    struct BedTotalCapacity {
+        sum_capacity: i64,
     }
 
     let result = Entity::find()
-    .filter(Column::RoomId.eq(room_id))
-    .select_only()
-    .column_as(Column::TotalCapacity.sum(), "sum_capacity")
-    .into_model::<BedTotalCapacity>() 
-    .one(db)
-    .await?
-    .unwrap_or(BedTotalCapacity { sum_capacity: 0 })
-    .sum_capacity; 
+        .filter(Column::RoomId.eq(room_id))
+        .select_only()
+        .column_as(Column::TotalCapacity.sum(), "sum_capacity")
+        .into_model::<BedTotalCapacity>()
+        .one(db)
+        .await?
+        .unwrap_or(BedTotalCapacity { sum_capacity: 0 })
+        .sum_capacity;
 
     Ok(result as i16)
 }

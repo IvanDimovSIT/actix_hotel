@@ -114,14 +114,14 @@ where
     T: ConnectionTrait,
 {
     #[derive(Debug, FromQueryResult)]
-    struct GuestId{
-        g_id: Uuid
+    struct GuestId {
+        g_id: Uuid,
     }
 
     let mut query = crate::persistence::guest::Entity::find()
         .select_only()
         .column_as(Column::Id, "g_id");
-    
+
     if let Some(some) = first_name {
         query = query.filter(crate::persistence::guest::Column::FirstName.eq(some))
     }

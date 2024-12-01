@@ -4,7 +4,10 @@ use log::{error, info};
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 
 use crate::{
-    constants::{DB_LOGGING_LEVEL, ENV_DATABASE_URL, ENV_JWT_SECRET, ENV_JWT_VALIDITY_SECS, ENV_OTP_VALIDITY_SECS},
+    constants::{
+        DB_LOGGING_LEVEL, ENV_DATABASE_URL, ENV_JWT_SECRET, ENV_JWT_VALIDITY_SECS,
+        ENV_OTP_VALIDITY_SECS,
+    },
     persistence::initialise_db,
     services::email_service::EmailService,
     validation::Validator,

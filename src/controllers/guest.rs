@@ -1,31 +1,49 @@
 use actix_web::{
-    get, http::StatusCode, post, web::{Data, Json, Query, ServiceConfig}, HttpRequest, Responder
+    get,
+    http::StatusCode,
+    post,
+    web::{Data, Json, Path, Query, ServiceConfig},
+    HttpRequest, Responder,
 };
 use utoipa::OpenApi;
+use uuid::Uuid;
 
 use crate::{
     api::{
         error_response::ErrorResponse,
         guest::{
-            add_guest::{AddGuestInput, AddGuestOutput}, find_guest::{FindGuestInput, FindGuestOutput}, GuestIdCard
+            add_guest::{AddGuestInput, AddGuestOutput},
+            find_guest::{FindGuestInput, FindGuestOutput},
+            get_guest::{GetGuestInput, GetGuestOutput},
+            GuestIdCard,
         },
     },
     app_state::AppState,
     persistence::user::Role,
-    services::guest::{add_guest::add_guest, find_guest::find_guest},
+    services::guest::{add_guest::add_guest, find_guest::find_guest, get_guest::get_guest},
     util::process_request_secured,
 };
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(add_guest_controller),
-    components(schemas(ErrorResponse, GuestIdCard, AddGuestInput, AddGuestOutput, FindGuestInput, FindGuestOutput))
+    paths(add_guest_controller, find_guest_controller, get_guest_controller),
+    components(schemas(
+        ErrorResponse,
+        GuestIdCard,
+        AddGuestInput,
+        AddGuestOutput,
+        FindGuestInput,
+        FindGuestOutput,
+        GetGuestInput,
+        GetGuestOutput
+    ))
 )]
 pub struct GuestApiDoc;
 
 pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(add_guest_controller);
     cfg.service(find_guest_controller);
+    cfg.service(get_guest_controller);
 }
 
 #[utoipa::path(
@@ -87,6 +105,38 @@ pub async fn find_guest_controller(
         &state,
         input.into_inner(),
         find_guest,
+        StatusCode::OK,
+    )
+    .await
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Successfully found guests", body = GetGuestOutput),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 403, description = "Invalid authority", body = ErrorResponse),
+        (status = 404, description = "Guest not found", body = ErrorResponse),
+    ),
+    params(
+        ("guestId" = String, Path, description = "Guest id")
+    ),
+    security(("bearer_auth" = []))
+)]
+#[get("/guest/{guestId}")]
+pub async fn get_guest_controller(
+    req: HttpRequest,
+    state: Data<AppState>,
+    path: Path<Uuid>,
+) -> impl Responder {
+    process_request_secured(
+        req,
+        &[Role::Admin],
+        &state,
+        GetGuestInput {
+            guest_id: path.into_inner(),
+        },
+        get_guest,
         StatusCode::OK,
     )
     .await

@@ -10,7 +10,6 @@ use crate::{
     validation::{Validate, Validator},
 };
 
-
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[schema(rename_all = "camelCase")]

@@ -1,5 +1,5 @@
-use std::time::Duration;
 use sea_orm::{sqlx::types::chrono::Utc, ActiveModelTrait};
+use std::time::Duration;
 use uuid::Uuid;
 
 use crate::{

@@ -10,7 +10,8 @@ use crate::{
     },
     app_state::AppState,
     persistence::{
-        bed, room::{self, find_room_by_id},
+        bed,
+        room::{self, find_room_by_id},
     },
     util::require_some,
 };

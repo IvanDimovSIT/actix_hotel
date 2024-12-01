@@ -9,9 +9,7 @@ use crate::{
         guest::add_guest::{AddGuestInput, AddGuestOutput},
     },
     app_state::AppState,
-    persistence::
-        guest::{self, find_first_by_ucn_or_card_number_or_phone, ActiveModel}
-    ,
+    persistence::guest::{self, find_first_by_ucn_or_card_number_or_phone, ActiveModel},
 };
 
 const INVALID_STATE: &str = "Invalid state when searching for existing ucn or id card number";

@@ -67,7 +67,7 @@ pub fn hash_password(password: &str) -> String {
         Err(err) => {
             error!("Error hashing password: {err}");
             panic!("Error hashing password");
-        },
+        }
     }
 }
 
@@ -77,7 +77,7 @@ pub fn passwords_match(raw_password: &str, password_hash: &str) -> bool {
         Err(err) => {
             error!("Error verifying password: {err}");
             panic!("Error verifying password");
-        },
+        }
     }
 }
 
