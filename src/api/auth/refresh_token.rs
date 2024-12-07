@@ -14,8 +14,8 @@ pub struct RefreshTokenInput {
     pub claims: Option<Claims>,
 }
 impl Validate for RefreshTokenInput {
-    fn validate(&self, validator: &Validator) -> Result<(), ErrorResponse> {
-        validator.validate_option(&self.claims, "claims")?;
+    fn validate(&self, _validator: &Validator) -> Result<(), ErrorResponse> {
+        Validator::validate_option(&self.claims, "claims")?;
 
         Ok(())
     }

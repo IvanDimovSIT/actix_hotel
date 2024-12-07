@@ -118,11 +118,7 @@ impl Validator {
         })
     }
 
-    pub fn validate_option<T>(
-        &self,
-        option: &Option<T>,
-        field_name: &str,
-    ) -> Result<(), ErrorResponse> {
+    pub fn validate_option<T>(option: &Option<T>, field_name: &str) -> Result<(), ErrorResponse> {
         if option.is_some() {
             return Ok(());
         }
@@ -211,12 +207,9 @@ mod tests {
 
     #[test]
     fn test_validate_option() {
-        let validator = Validator::new();
         let valid_option = Some("some");
         let invalid_option: Option<&str> = None;
-        assert!(validator.validate_option(&valid_option, "option").is_ok());
-        assert!(validator
-            .validate_option(&invalid_option, "option")
-            .is_err());
+        assert!(Validator::validate_option(&valid_option, "option").is_ok());
+        assert!(Validator::validate_option(&invalid_option, "option").is_err());
     }
 }
