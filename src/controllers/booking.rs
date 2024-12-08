@@ -1,35 +1,34 @@
 use actix_web::{
-    get,
-    http::StatusCode,
-    post,
-    web::{Data, Json, Query, ServiceConfig},
-    HttpRequest, Responder,
+    get, http::StatusCode, post, put, web::{Data, Json, Path, Query, ServiceConfig}, HttpRequest, Responder
 };
 use utoipa::OpenApi;
+use uuid::Uuid;
 
 use crate::{
     api::{
         booking::{
             book_room::{BookRoomInput, BookRoomOutput},
-            find_unoccupied_rooms::{FindUnoccupiedRoomsInput, FindUnoccupiedRoomsOutput},
+            find_unoccupied_rooms::{FindUnoccupiedRoomsInput, FindUnoccupiedRoomsOutput}, pay_booking::{PayBookingInput, PayBookingOutput},
         },
         error_response::ErrorResponse,
     },
     app_state::AppState,
     persistence::user::Role,
-    services::booking::{book_room::book_room, find_unoccupied_rooms::find_unoccupied_rooms},
+    services::booking::{book_room::book_room, find_unoccupied_rooms::find_unoccupied_rooms, pay_booking::pay_booking},
     util::process_request_secured,
 };
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(find_unoccupied_rooms_controller, book_room_controller),
+    paths(find_unoccupied_rooms_controller, book_room_controller, pay_booking_controller),
     components(schemas(
         ErrorResponse,
         FindUnoccupiedRoomsInput,
         FindUnoccupiedRoomsOutput,
         BookRoomInput,
-        BookRoomOutput
+        BookRoomOutput,
+        PayBookingInput,
+        PayBookingOutput
     ))
 )]
 pub struct BookingApiDoc;
@@ -37,6 +36,7 @@ pub struct BookingApiDoc;
 pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(find_unoccupied_rooms_controller);
     cfg.service(book_room_controller);
+    cfg.service(pay_booking_controller);
 }
 
 #[utoipa::path(
@@ -97,6 +97,35 @@ pub async fn book_room_controller(
         input.into_inner(),
         book_room,
         StatusCode::CREATED,
+    )
+    .await
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Successfully booked room", body = PayBookingOutput),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 403, description = "Invalid credentials", body = ErrorResponse),
+    ),
+    params(
+        ("bookingId" = String, Path, description = "Booking id")
+    ),
+    security(("bearer_auth" = []))
+)]
+#[put("/booking/pay/{bookingId}")]
+pub async fn pay_booking_controller(
+    req: HttpRequest,
+    state: Data<AppState>,
+    input: Path<Uuid>,
+) -> impl Responder {
+    process_request_secured(
+        req,
+        &[Role::Admin],
+        &state,
+        PayBookingInput{ booking_id: input.into_inner() },
+        pay_booking,
+        StatusCode::OK,
     )
     .await
 }

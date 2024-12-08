@@ -58,6 +58,7 @@ pub struct Model {
     pub admin_id: Uuid,
     pub user_id: Option<Uuid>,
     pub booking_time: DateTime,
+    pub payment_time: Option<DateTime>,
     pub start_date: Date,
     pub end_date: Date,
     pub total_price: i64,

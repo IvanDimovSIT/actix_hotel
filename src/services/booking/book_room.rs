@@ -228,6 +228,7 @@ async fn insert_booking(
         admin_id,
         user_id: input.guest_user_id,
         booking_time: Utc::now().naive_utc(),
+        payment_time: None,
         start_date: input.start_date,
         end_date: input.end_date,
         total_price,
