@@ -1,5 +1,9 @@
 use actix_web::{
-    get, http::StatusCode, post, put, web::{Data, Json, Path, Query, ServiceConfig}, HttpRequest, Responder
+    get,
+    http::StatusCode,
+    post, put,
+    web::{Data, Json, Path, Query, ServiceConfig},
+    HttpRequest, Responder,
 };
 use utoipa::OpenApi;
 use uuid::Uuid;
@@ -8,19 +12,29 @@ use crate::{
     api::{
         booking::{
             book_room::{BookRoomInput, BookRoomOutput},
-            find_unoccupied_rooms::{FindUnoccupiedRoomsInput, FindUnoccupiedRoomsOutput}, pay_booking::{PayBookingInput, PayBookingOutput},
+            find_unoccupied_rooms::{FindUnoccupiedRoomsInput, FindUnoccupiedRoomsOutput},
+            get_booking::{BookingGuest, GetBookingInput, GetBookingOutput},
+            pay_booking::{PayBookingInput, PayBookingOutput},
         },
         error_response::ErrorResponse,
     },
     app_state::AppState,
-    persistence::user::Role,
-    services::booking::{book_room::book_room, find_unoccupied_rooms::find_unoccupied_rooms, pay_booking::pay_booking},
+    persistence::{booking::BookingStatus, user::Role},
+    services::booking::{
+        book_room::book_room, find_unoccupied_rooms::find_unoccupied_rooms,
+        get_booking::get_booking, pay_booking::pay_booking,
+    },
     util::process_request_secured,
 };
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(find_unoccupied_rooms_controller, book_room_controller, pay_booking_controller),
+    paths(
+        find_unoccupied_rooms_controller,
+        book_room_controller,
+        pay_booking_controller,
+        get_booking_controller
+    ),
     components(schemas(
         ErrorResponse,
         FindUnoccupiedRoomsInput,
@@ -28,7 +42,11 @@ use crate::{
         BookRoomInput,
         BookRoomOutput,
         PayBookingInput,
-        PayBookingOutput
+        PayBookingOutput,
+        BookingStatus,
+        BookingGuest,
+        GetBookingInput,
+        GetBookingOutput
     ))
 )]
 pub struct BookingApiDoc;
@@ -37,6 +55,7 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(find_unoccupied_rooms_controller);
     cfg.service(book_room_controller);
     cfg.service(pay_booking_controller);
+    cfg.service(get_booking_controller);
 }
 
 #[utoipa::path(
@@ -103,7 +122,7 @@ pub async fn book_room_controller(
 
 #[utoipa::path(
     responses(
-        (status = 200, description = "Successfully booked room", body = PayBookingOutput),
+        (status = 200, description = "Successfully payed room", body = PayBookingOutput),
         (status = 400, description = "Invalid input", body = ErrorResponse),
         (status = 401, description = "Invalid credentials", body = ErrorResponse),
         (status = 403, description = "Invalid credentials", body = ErrorResponse),
@@ -123,8 +142,43 @@ pub async fn pay_booking_controller(
         req,
         &[Role::Admin],
         &state,
-        PayBookingInput{ booking_id: input.into_inner() },
+        PayBookingInput {
+            booking_id: input.into_inner(),
+        },
         pay_booking,
+        StatusCode::OK,
+    )
+    .await
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Successfully fetched booking", body = GetBookingOutput),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 401, description = "No access to booking", body = ErrorResponse),
+        (status = 404, description = "Booking not found", body = ErrorResponse),
+    ),
+    params(
+        ("bookingId" = String, Path, description = "Booking id")
+    ),
+    security(("bearer_auth" = []))
+)]
+#[get("/booking/{bookingId}")]
+pub async fn get_booking_controller(
+    req: HttpRequest,
+    state: Data<AppState>,
+    input: Path<Uuid>,
+) -> impl Responder {
+    process_request_secured(
+        req,
+        &[Role::User, Role::Admin],
+        &state,
+        GetBookingInput {
+            booking_id: input.into_inner(),
+            ..Default::default()
+        },
+        get_booking,
         StatusCode::OK,
     )
     .await

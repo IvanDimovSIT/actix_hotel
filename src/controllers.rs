@@ -29,7 +29,8 @@ pub mod room;
     guest::get_guest_controller,
     booking::find_unoccupied_rooms_controller,
     booking::book_room_controller,
-    booking::pay_booking_controller
+    booking::pay_booking_controller,
+    booking::get_booking_controller
 ))]
 pub struct ApiDoc;
 
