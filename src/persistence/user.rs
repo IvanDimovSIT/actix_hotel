@@ -14,6 +14,7 @@ use sea_orm::PrimaryKeyTrait;
 use sea_orm::QueryFilter;
 use serde::Deserialize;
 use serde::Serialize;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, PartialEq, Eq, Default, DeriveEntityModel)]
@@ -29,7 +30,7 @@ pub struct Model {
 }
 
 #[derive(
-    Clone, Debug, PartialEq, Eq, Default, EnumIter, DeriveActiveEnum, Serialize, Deserialize,
+    Clone, Debug, PartialEq, Eq, Default, EnumIter, DeriveActiveEnum, Serialize, Deserialize, ToSchema
 )]
 #[sea_orm(rs_type = "String", db_type = "String(StringLen::N(16))")]
 pub enum Role {

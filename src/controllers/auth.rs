@@ -43,6 +43,7 @@ use crate::{
     ),
     components(schemas(
         ErrorResponse,
+        Role,
         Claims,
         RegisterUserInput,
         RegisterUserOutput,
