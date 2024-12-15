@@ -14,6 +14,7 @@ use crate::{
             book_room::{BookRoomInput, BookRoomOutput},
             find_unoccupied_rooms::{FindUnoccupiedRoomsInput, FindUnoccupiedRoomsOutput},
             get_booking::{BookingGuest, GetBookingInput, GetBookingOutput},
+            get_own_bookings::{GetOwnBookingsInput, GetOwnBookingsOutput},
             pay_booking::{PayBookingInput, PayBookingOutput},
         },
         error_response::ErrorResponse,
@@ -22,7 +23,7 @@ use crate::{
     persistence::{booking::BookingStatus, user::Role},
     services::booking::{
         book_room::book_room, find_unoccupied_rooms::find_unoccupied_rooms,
-        get_booking::get_booking, pay_booking::pay_booking,
+        get_booking::get_booking, get_own_bookings::get_own_bookings, pay_booking::pay_booking,
     },
     util::process_request_secured,
 };
@@ -33,7 +34,8 @@ use crate::{
         find_unoccupied_rooms_controller,
         book_room_controller,
         pay_booking_controller,
-        get_booking_controller
+        get_booking_controller,
+        get_own_bookings_controller,
     ),
     components(schemas(
         ErrorResponse,
@@ -46,7 +48,9 @@ use crate::{
         BookingStatus,
         BookingGuest,
         GetBookingInput,
-        GetBookingOutput
+        GetBookingOutput,
+        GetOwnBookingsInput,
+        GetOwnBookingsOutput
     ))
 )]
 pub struct BookingApiDoc;
@@ -56,6 +60,7 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(book_room_controller);
     cfg.service(pay_booking_controller);
     cfg.service(get_booking_controller);
+    cfg.service(get_own_bookings_controller);
 }
 
 #[utoipa::path(
@@ -179,6 +184,37 @@ pub async fn get_booking_controller(
             ..Default::default()
         },
         get_booking,
+        StatusCode::OK,
+    )
+    .await
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Successfully fetched booking", body = GetBookingOutput),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 401, description = "No access to booking", body = ErrorResponse),
+        (status = 404, description = "Booking not found", body = ErrorResponse),
+    ),
+    params(
+        ("includeCanceled" = bool, Query, description = "Should include canceld bookings", example = "true"),
+        ("includePaid" = bool, Query, description = "Should include paid bookings", example = "true"),
+    ),
+    security(("bearer_auth" = []))
+)]
+#[get("/booking")]
+pub async fn get_own_bookings_controller(
+    req: HttpRequest,
+    state: Data<AppState>,
+    input: Query<GetOwnBookingsInput>,
+) -> impl Responder {
+    process_request_secured(
+        req,
+        &[Role::User, Role::Admin],
+        &state,
+        input.into_inner(),
+        get_own_bookings,
         StatusCode::OK,
     )
     .await

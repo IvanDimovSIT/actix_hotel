@@ -30,7 +30,8 @@ pub mod room;
     booking::find_unoccupied_rooms_controller,
     booking::book_room_controller,
     booking::pay_booking_controller,
-    booking::get_booking_controller
+    booking::get_booking_controller,
+    booking::get_own_bookings_controller
 ))]
 pub struct ApiDoc;
 

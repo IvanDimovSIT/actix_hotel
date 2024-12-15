@@ -13,8 +13,10 @@ use sea_orm::DerivePrimaryKey;
 use sea_orm::DeriveRelation;
 use sea_orm::EntityTrait;
 use sea_orm::EnumIter;
+use sea_orm::FromQueryResult;
 use sea_orm::PrimaryKeyTrait;
 use sea_orm::QueryFilter;
+use sea_orm::QuerySelect;
 use sea_orm::Related;
 use sea_orm::RelationTrait;
 use serde::Deserialize;
@@ -153,4 +155,39 @@ where
         .one(db)
         .await?
         .is_some())
+}
+
+pub async fn get_bookings_for_user<T>(
+    db: &T,
+    user_id: Uuid,
+    include_canceled: bool,
+    include_paid: bool,
+) -> Result<Vec<Uuid>, DbErr>
+where
+    T: ConnectionTrait,
+{
+    #[derive(Debug, FromQueryResult)]
+    struct BookingId {
+        b_id: Uuid,
+    }
+
+    let mut base_query = Entity::find()
+        .select_only()
+        .column_as(Column::Id, "b_id")
+        .filter(Column::UserId.eq(user_id));
+
+    if !include_canceled {
+        base_query = base_query.filter(Column::Status.eq(BookingStatus::Canceled).not())
+    }
+    if !include_paid {
+        base_query = base_query.filter(Column::Status.eq(BookingStatus::Paid).not())
+    }
+
+    Ok(base_query
+        .into_model::<BookingId>()
+        .all(db)
+        .await?
+        .iter()
+        .map(|b| b.b_id)
+        .collect())
 }
