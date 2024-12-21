@@ -12,6 +12,7 @@ use crate::{
     api::{
         booking::{
             book_room::{BookRoomInput, BookRoomOutput},
+            cancel_booking::{CancelBookingInput, CancelBookingOutput},
             find_unoccupied_rooms::{FindUnoccupiedRoomsInput, FindUnoccupiedRoomsOutput},
             get_booking::{BookingGuest, GetBookingInput, GetBookingOutput},
             get_own_bookings::{GetOwnBookingsInput, GetOwnBookingsOutput},
@@ -22,8 +23,9 @@ use crate::{
     app_state::AppState,
     persistence::{booking::BookingStatus, user::Role},
     services::booking::{
-        book_room::book_room, find_unoccupied_rooms::find_unoccupied_rooms,
-        get_booking::get_booking, get_own_bookings::get_own_bookings, pay_booking::pay_booking,
+        book_room::book_room, cancel_booking::cancel_booking,
+        find_unoccupied_rooms::find_unoccupied_rooms, get_booking::get_booking,
+        get_own_bookings::get_own_bookings, pay_booking::pay_booking,
     },
     util::process_request_secured,
 };
@@ -36,6 +38,7 @@ use crate::{
         pay_booking_controller,
         get_booking_controller,
         get_own_bookings_controller,
+        cancel_booking_controller
     ),
     components(schemas(
         ErrorResponse,
@@ -50,7 +53,9 @@ use crate::{
         GetBookingInput,
         GetBookingOutput,
         GetOwnBookingsInput,
-        GetOwnBookingsOutput
+        GetOwnBookingsOutput,
+        CancelBookingInput,
+        CancelBookingOutput
     ))
 )]
 pub struct BookingApiDoc;
@@ -61,6 +66,7 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(pay_booking_controller);
     cfg.service(get_booking_controller);
     cfg.service(get_own_bookings_controller);
+    cfg.service(cancel_booking_controller);
 }
 
 #[utoipa::path(
@@ -131,6 +137,7 @@ pub async fn book_room_controller(
         (status = 400, description = "Invalid input", body = ErrorResponse),
         (status = 401, description = "Invalid credentials", body = ErrorResponse),
         (status = 403, description = "Invalid credentials", body = ErrorResponse),
+        (status = 404, description = "Booking not found", body = ErrorResponse),
     ),
     params(
         ("bookingId" = String, Path, description = "Booking id")
@@ -151,6 +158,38 @@ pub async fn pay_booking_controller(
             booking_id: input.into_inner(),
         },
         pay_booking,
+        StatusCode::OK,
+    )
+    .await
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Successfully canceled booking", body = CancelBookingOutput),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 403, description = "Invalid credentials", body = ErrorResponse),
+        (status = 404, description = "Booking not found", body = ErrorResponse),
+    ),
+    params(
+        ("bookingId" = String, Path, description = "Booking id")
+    ),
+    security(("bearer_auth" = []))
+)]
+#[put("/booking/cancel/{bookingId}")]
+pub async fn cancel_booking_controller(
+    req: HttpRequest,
+    state: Data<AppState>,
+    input: Path<Uuid>,
+) -> impl Responder {
+    process_request_secured(
+        req,
+        &[Role::Admin],
+        &state,
+        CancelBookingInput {
+            booking_id: input.into_inner(),
+        },
+        cancel_booking,
         StatusCode::OK,
     )
     .await

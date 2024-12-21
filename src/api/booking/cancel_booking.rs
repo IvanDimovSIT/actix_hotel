@@ -11,15 +11,15 @@ use crate::{
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[schema(rename_all = "camelCase")]
-pub struct PayBookingInput {
+pub struct CancelBookingInput {
     pub booking_id: Uuid,
 }
-impl Validate for PayBookingInput {
+impl Validate for CancelBookingInput {
     fn validate(&self, _validator: &Validator) -> Result<(), ErrorResponse> {
         Ok(())
     }
 }
-impl WithClaims for PayBookingInput {
+impl WithClaims for CancelBookingInput {
     fn with_claims(self, _claims: crate::security::Claims) -> Self {
         self
     }
@@ -28,4 +28,4 @@ impl WithClaims for PayBookingInput {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[schema(rename_all = "camelCase")]
-pub struct PayBookingOutput;
+pub struct CancelBookingOutput;

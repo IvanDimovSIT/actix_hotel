@@ -30,7 +30,16 @@ pub struct Model {
 }
 
 #[derive(
-    Clone, Debug, PartialEq, Eq, Default, EnumIter, DeriveActiveEnum, Serialize, Deserialize, ToSchema
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Default,
+    EnumIter,
+    DeriveActiveEnum,
+    Serialize,
+    Deserialize,
+    ToSchema,
 )]
 #[sea_orm(rs_type = "String", db_type = "String(StringLen::N(16))")]
 pub enum Role {
