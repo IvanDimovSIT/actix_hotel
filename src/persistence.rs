@@ -17,6 +17,7 @@ pub mod bed;
 pub mod booking;
 pub mod booking_guest;
 pub mod guest;
+pub mod invalidated_token;
 pub mod one_time_password;
 pub mod room;
 pub mod user;
@@ -127,6 +128,7 @@ pub async fn initialise_db(db: &DatabaseConnection, env: &EnvironmentVariables) 
     create_table(db, guest::Entity).await;
     create_table(db, booking::Entity).await;
     create_table(db, booking_guest::Entity).await;
+    create_table(db, invalidated_token::Entity).await;
 
     initialise_admin(db, env).await;
 }

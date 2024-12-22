@@ -53,7 +53,7 @@ where
     F: Future<Output = Result<O, ErrorResponse>>,
     O: Serialize,
 {
-    let claims_result = decode_claims(&request, state, required_roles);
+    let claims_result = decode_claims(&request, state, required_roles).await;
     match claims_result {
         Ok(claims) => {
             let input_with_claims = input.with_claims(claims);

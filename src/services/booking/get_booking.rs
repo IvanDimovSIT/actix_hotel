@@ -8,7 +8,7 @@ use crate::{
         guest::GuestIdCard,
     },
     app_state::AppState,
-    persistence::{self, booking, booking_guest, guest},
+    persistence::{self, booking, guest},
     util::require_some,
 };
 

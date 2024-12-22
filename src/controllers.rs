@@ -21,6 +21,7 @@ pub mod room;
     auth::change_password_controller,
     auth::reset_password_controller,
     auth::send_otp_controller,
+    auth::logout_controller,
     room::add_room_controller,
     room::get_room_controller,
     room::delete_room_controller,

@@ -15,7 +15,7 @@ use crate::{
     api::error_response::ErrorResponse,
     app_state::AppState,
     constants::{BCRYPT_COST, BEARER_PREFIX, OTP_LENGTH},
-    persistence::user::Role,
+    persistence::{invalidated_token, user::Role},
     util::error_to_response,
 };
 
@@ -89,7 +89,7 @@ pub fn generate_otp() -> String {
         .collect()
 }
 
-pub fn decode_claims(
+pub async fn decode_claims(
     req: &HttpRequest,
     app_state: &AppState,
     roles: &[Role],
@@ -112,8 +112,15 @@ pub fn decode_claims(
             StatusCode::UNAUTHORIZED,
         ));
     }
+    let jwt = auth_header.strip_prefix(BEARER_PREFIX).unwrap();
+    if invalidated_token::is_invalidated(app_state.db.as_ref(), jwt).await? {
+        return Err(ErrorResponse::new(
+            "Not authenticated: invalidated JWT".to_string(),
+            StatusCode::UNAUTHORIZED,
+        ));
+    }
 
-    let decoded = Claims::from_token(auth_header.strip_prefix(BEARER_PREFIX).unwrap(), app_state);
+    let decoded = Claims::from_token(jwt, app_state);
     if let Err(err) = decoded {
         return Err(error_to_response(err));
     }

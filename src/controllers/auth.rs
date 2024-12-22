@@ -12,6 +12,7 @@ use crate::{
         auth::{
             change_password::{ChangePasswordInput, ChangePasswordOutput},
             login::{LoginInput, LoginOutput},
+            logout::LogoutInput,
             promote::{PromoteInput, PromoteOutput},
             refresh_token::{RefreshTokenInput, RefreshTokenOutput},
             register_user::{RegisterUserInput, RegisterUserOutput},
@@ -24,7 +25,7 @@ use crate::{
     persistence::user::Role,
     security::Claims,
     services::auth::{
-        change_password::change_password, login::login, promote::promote,
+        change_password::change_password, login::login, logout::logout, promote::promote,
         refresh_token::refresh_token, register_user::register_user, reset_password::reset_password,
         send_otp::send_otp,
     },
@@ -39,7 +40,8 @@ use crate::{
         refresh_token_controller,
         change_password_controller,
         send_otp_controller,
-        reset_password_controller
+        reset_password_controller,
+        logout_controller
     ),
     components(schemas(
         ErrorResponse,
@@ -58,7 +60,9 @@ use crate::{
         SendOtpInput,
         SendOtpOutput,
         ResetPasswordInput,
-        ResetPasswordOutput
+        ResetPasswordOutput,
+        LogoutInput,
+        LoginOutput
     ))
 )]
 pub struct AuthApiDoc;
@@ -71,6 +75,7 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(change_password_controller);
     cfg.service(send_otp_controller);
     cfg.service(reset_password_controller);
+    cfg.service(logout_controller);
 }
 
 #[utoipa::path(
@@ -241,4 +246,24 @@ pub async fn reset_password_controller(
     input: Json<ResetPasswordInput>,
 ) -> impl Responder {
     process_request(&state, input.into_inner(), reset_password, StatusCode::OK).await
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Successfully logged out", body = ResetPasswordOutput),
+        (status = 401, description = "Not logged in", body = ErrorResponse),
+    ),
+    security(("bearer_auth" = []))
+)]
+#[post("/auth/logout")]
+pub async fn logout_controller(req: HttpRequest, state: Data<AppState>) -> impl Responder {
+    process_request_secured(
+        req,
+        &[Role::User, Role::Admin],
+        &state,
+        LogoutInput::default(),
+        logout,
+        StatusCode::OK,
+    )
+    .await
 }
