@@ -1,20 +1,37 @@
-use sea_orm::{ActiveModelTrait, ActiveValue};
-use uuid::Uuid;
+use actix_web::http::StatusCode;
+use sea_orm::{ActiveModelTrait, ActiveValue, EntityTrait};
 
 use crate::{
     api::{
         error_response::ErrorResponse,
-        guest::add_guest::{AddGuestInput, AddGuestOutput},
+        guest::{
+            self,
+            update_guest::{UpdateGuestInput, UpdateGuestOutput},
+        },
     },
     app_state::AppState,
-    persistence::guest::ActiveModel,
+    persistence,
+    services::guest::find_existing_guest,
+    util::require_some,
 };
 
-use super::{find_conflicting_fields, find_existing_guest};
+use super::find_conflicting_fields;
+
+async fn check_exists(app_state: &AppState, input: &UpdateGuestInput) -> Result<(), ErrorResponse> {
+    require_some(
+        persistence::guest::Entity::find_by_id(input.id.unwrap())
+            .one(app_state.db.as_ref())
+            .await?,
+        || format!("Guest with id '{}' not found", input.id.unwrap()),
+        StatusCode::NOT_FOUND,
+    )?;
+
+    Ok(())
+}
 
 async fn check_ucn_and_card_number_not_in_use(
     app_state: &AppState,
-    input: &AddGuestInput,
+    input: &UpdateGuestInput,
 ) -> Result<(), ErrorResponse> {
     let (ucn, id_card_number) = if let Some(card) = &input.id_card {
         (Some(card.ucn.clone()), Some(card.id_card_number.clone()))
@@ -25,19 +42,27 @@ async fn check_ucn_and_card_number_not_in_use(
     let find_guest_result =
         find_existing_guest(app_state, &ucn, &id_card_number, &input.phone_number).await?;
 
-    if let Some(guest) = find_guest_result {
-        Err(find_conflicting_fields(
-            guest,
-            ucn,
-            id_card_number,
-            input.phone_number.clone(),
-        ))
-    } else {
-        Ok(())
+    match find_guest_result {
+        Some(found) => {
+            if found.id != input.id.unwrap() {
+                Err(find_conflicting_fields(
+                    found,
+                    ucn,
+                    id_card_number,
+                    input.phone_number.clone(),
+                ))
+            } else {
+                Ok(())
+            }
+        }
+        None => Ok(()),
     }
 }
 
-async fn save_guest(app_state: &AppState, input: &AddGuestInput) -> Result<Uuid, ErrorResponse> {
+async fn save_guest(
+    app_state: &AppState,
+    input: UpdateGuestInput,
+) -> Result<UpdateGuestOutput, ErrorResponse> {
     let (ucn, id_card_number, id_card_issue_authority, id_card_issue_date, id_card_validity) =
         if let Some(card) = &input.id_card {
             (
@@ -51,9 +76,8 @@ async fn save_guest(app_state: &AppState, input: &AddGuestInput) -> Result<Uuid,
             (None, None, None, None, None)
         };
 
-    let id = Uuid::new_v4();
-    let guest = ActiveModel {
-        id: ActiveValue::Set(id),
+    let guest = persistence::guest::ActiveModel {
+        id: ActiveValue::Unchanged(input.id.unwrap()),
         first_name: ActiveValue::Set(input.first_name.clone()),
         last_name: ActiveValue::Set(input.last_name.clone()),
         date_of_birth: ActiveValue::Set(input.date_of_birth),
@@ -64,18 +88,16 @@ async fn save_guest(app_state: &AppState, input: &AddGuestInput) -> Result<Uuid,
         id_card_validity: ActiveValue::Set(id_card_validity),
         phone_number: ActiveValue::Set(input.phone_number.clone()),
     };
-    guest.insert(app_state.db.as_ref()).await?;
+    guest.save(app_state.db.as_ref()).await?;
 
-    Ok(id)
+    Ok(UpdateGuestOutput)
 }
 
-pub async fn add_guest(
+pub async fn update_guest(
     app_state: &AppState,
-    input: AddGuestInput,
-) -> Result<AddGuestOutput, ErrorResponse> {
+    input: UpdateGuestInput,
+) -> Result<UpdateGuestOutput, ErrorResponse> {
+    check_exists(app_state, &input).await?;
     check_ucn_and_card_number_not_in_use(app_state, &input).await?;
-
-    let guest_id = save_guest(app_state, &input).await?;
-
-    Ok(AddGuestOutput { guest_id })
+    save_guest(app_state, input).await
 }

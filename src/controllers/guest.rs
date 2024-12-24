@@ -1,7 +1,7 @@
 use actix_web::{
     get,
     http::StatusCode,
-    post,
+    post, put,
     web::{Data, Json, Path, Query, ServiceConfig},
     HttpRequest, Responder,
 };
@@ -15,18 +15,27 @@ use crate::{
             add_guest::{AddGuestInput, AddGuestOutput},
             find_guest::{FindGuestInput, FindGuestOutput},
             get_guest::{GetGuestInput, GetGuestOutput},
+            update_guest::{UpdateGuestInput, UpdateGuestOutput},
             GuestIdCard,
         },
     },
     app_state::AppState,
     persistence::user::Role,
-    services::guest::{add_guest::add_guest, find_guest::find_guest, get_guest::get_guest},
+    services::guest::{
+        add_guest::add_guest, find_guest::find_guest, get_guest::get_guest,
+        update_guest::update_guest,
+    },
     util::process_request_secured,
 };
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(add_guest_controller, find_guest_controller, get_guest_controller),
+    paths(
+        add_guest_controller,
+        find_guest_controller,
+        get_guest_controller,
+        update_guest_controller
+    ),
     components(schemas(
         ErrorResponse,
         GuestIdCard,
@@ -35,7 +44,9 @@ use crate::{
         FindGuestInput,
         FindGuestOutput,
         GetGuestInput,
-        GetGuestOutput
+        GetGuestOutput,
+        UpdateGuestInput,
+        UpdateGuestOutput
     ))
 )]
 pub struct GuestApiDoc;
@@ -44,6 +55,7 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(add_guest_controller);
     cfg.service(find_guest_controller);
     cfg.service(get_guest_controller);
+    cfg.service(update_guest_controller);
 }
 
 #[utoipa::path(
@@ -137,6 +149,45 @@ pub async fn get_guest_controller(
             guest_id: path.into_inner(),
         },
         get_guest,
+        StatusCode::OK,
+    )
+    .await
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Successfully update guest", body = UpdateGuestOutput),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 403, description = "Invalid credentials", body = ErrorResponse),
+        (status = 404, description = "Guest not found", body = ErrorResponse),
+    ),
+    request_body(
+        content = UpdateGuestInput,
+        description = "Guest data",
+        content_type = "application/json"
+    ),
+    params(
+        ("guestId" = String, Path, description = "Guest id")
+    ),
+    security(("bearer_auth" = []))
+)]
+#[put("/guest/{guestId}")]
+pub async fn update_guest_controller(
+    req: HttpRequest,
+    state: Data<AppState>,
+    input: Json<UpdateGuestInput>,
+    path: Path<Uuid>,
+) -> impl Responder {
+    process_request_secured(
+        req,
+        &[Role::Admin],
+        &state,
+        UpdateGuestInput {
+            id: Some(path.into_inner()),
+            ..input.into_inner()
+        },
+        update_guest,
         StatusCode::OK,
     )
     .await
