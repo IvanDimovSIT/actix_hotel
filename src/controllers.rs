@@ -7,13 +7,12 @@ use crate::constants::{API_DESCRIPTION, API_NAME, API_VERSION};
 
 pub mod auth;
 pub mod booking;
+pub mod comment;
 pub mod guest;
-pub mod hello_world;
 pub mod room;
 
 #[derive(utoipa::OpenApi)]
 #[openapi(paths(
-    hello_world::hello_world_controller,
     auth::register_controller,
     auth::login_controller,
     auth::promote_controller,
@@ -34,7 +33,8 @@ pub mod room;
     booking::pay_booking_controller,
     booking::get_booking_controller,
     booking::get_own_bookings_controller,
-    booking::cancel_booking_controller
+    booking::cancel_booking_controller,
+    comment::add_comment_controller
 ))]
 pub struct ApiDoc;
 
@@ -57,11 +57,11 @@ impl ApiDoc {
         );
         api.components = Some(componenets);
 
-        api.merge(<hello_world::HelloWorldApiDoc as utoipa::OpenApi>::openapi());
         api.merge(<auth::AuthApiDoc as utoipa::OpenApi>::openapi());
         api.merge(<room::RoomApiDoc as utoipa::OpenApi>::openapi());
         api.merge(<guest::GuestApiDoc as utoipa::OpenApi>::openapi());
         api.merge(<booking::BookingApiDoc as utoipa::OpenApi>::openapi());
+        api.merge(<comment::CommentApiDoc as utoipa::OpenApi>::openapi());
         api.info = Info::new(API_NAME, API_VERSION);
         api.info.description = Some(API_DESCRIPTION.to_string());
 

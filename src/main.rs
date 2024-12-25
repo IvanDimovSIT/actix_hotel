@@ -1,12 +1,8 @@
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use app_state::AppState;
 use constants::{APP_DEFAULT_LOGGING_LEVEL, REST_HOST};
-use controllers::{
-    auth, booking, guest,
-    hello_world::{self},
-    room,
-};
-use cronjobs::{start_cronjobs, InvalidatedJwtRemover};
+use controllers::{auth, booking, comment, guest, room};
+use cronjobs::start_cronjobs;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::{Config, SwaggerUi};
 
@@ -36,11 +32,11 @@ async fn main() -> std::io::Result<()> {
                     .config(Config::default())
                     .url("/api-doc/openapi.json", controllers::ApiDoc::new()),
             )
-            .configure(hello_world::config)
             .configure(auth::config)
             .configure(room::config)
             .configure(guest::config)
             .configure(booking::config)
+            .configure(comment::config)
     })
     .bind(REST_HOST)?
     .run()

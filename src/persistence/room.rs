@@ -59,6 +59,8 @@ pub enum Relation {
     Bed,
     #[sea_orm(has_many = "super::booking::Entity")]
     Booking,
+    #[sea_orm(has_many = "super::comment::Entity")]
+    Comment,
 }
 impl ActiveModelBehavior for ActiveModel {}
 
@@ -70,6 +72,11 @@ impl Related<super::bed::Entity> for Entity {
 impl Related<super::booking::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Booking.def()
+    }
+}
+impl Related<super::comment::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Comment.def()
     }
 }
 

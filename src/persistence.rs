@@ -16,6 +16,7 @@ use crate::{
 pub mod bed;
 pub mod booking;
 pub mod booking_guest;
+pub mod comment;
 pub mod guest;
 pub mod invalidated_token;
 pub mod one_time_password;
@@ -129,6 +130,7 @@ pub async fn initialise_db(db: &DatabaseConnection, env: &EnvironmentVariables) 
     create_table(db, booking::Entity).await;
     create_table(db, booking_guest::Entity).await;
     create_table(db, invalidated_token::Entity).await;
+    create_table(db, comment::Entity).await;
 
     initialise_admin(db, env).await;
 }

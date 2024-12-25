@@ -18,6 +18,7 @@ pub struct Validator {
     id_card_number_regex: Regex,
     phone_number_regex: Regex,
     id_card_issue_authority_regex: Regex,
+    comment_contents_regex: Regex,
 }
 impl Validator {
     pub fn new() -> Self {
@@ -37,6 +38,8 @@ impl Validator {
                 .expect("Error creating phone number regex"),
             id_card_issue_authority_regex: Regex::new("^[A-Za-z]+(?: [A-Za-z]+)*$")
                 .expect("Error creating id card issue authority regex"),
+            comment_contents_regex: Regex::new("^(\\s*[^ \\t\\r\\n].{0,255})$")
+                .expect("Error creating comment contents regex"),
         }
     }
 
@@ -118,6 +121,12 @@ impl Validator {
         })
     }
 
+    pub fn validate_comment_contents(&self, comment_contents: &str) -> Result<(), ErrorResponse> {
+        Self::validate(&self.comment_contents_regex, comment_contents, || {
+            format!("Invalid comment contents '{}'", comment_contents)
+        })
+    }
+
     pub fn validate_option<T>(option: &Option<T>, field_name: &str) -> Result<(), ErrorResponse> {
         if option.is_some() {
             return Ok(());
@@ -189,6 +198,17 @@ mod tests {
         assert!(validator.validate_phone_number(valid_phone_number).is_ok());
         assert!(validator
             .validate_phone_number(invalid_phone_number)
+            .is_err());
+    }
+
+    #[test]
+    fn test_validate_comment_contents() {
+        let validator = Validator::new();
+        let valid_contents = " some example text";
+        let invalid_contents = "   \t  \t \n\t ";
+        assert!(validator.validate_comment_contents(valid_contents).is_ok());
+        assert!(validator
+            .validate_comment_contents(invalid_contents)
             .is_err());
     }
 

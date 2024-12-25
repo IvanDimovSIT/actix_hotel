@@ -191,3 +191,19 @@ where
         .map(|b| b.b_id)
         .collect())
 }
+
+pub async fn user_has_booking_for_room<T>(
+    db: &T,
+    user_id: Uuid,
+    room_id: Uuid,
+) -> Result<bool, DbErr>
+where
+    T: ConnectionTrait,
+{
+    Ok(Entity::find()
+        .filter(Column::UserId.eq(user_id))
+        .filter(Column::RoomId.eq(room_id))
+        .one(db)
+        .await?
+        .is_some())
+}

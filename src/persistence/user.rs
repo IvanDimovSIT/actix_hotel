@@ -58,6 +58,8 @@ pub enum Relation {
     AdminBooking,
     #[sea_orm(has_one = "super::booking::Entity")]
     UserBooking,
+    #[sea_orm(has_one = "super::comment::Entity")]
+    Comment,
 }
 impl ActiveModelBehavior for ActiveModel {}
 

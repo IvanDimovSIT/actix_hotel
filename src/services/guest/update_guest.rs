@@ -4,10 +4,7 @@ use sea_orm::{ActiveModelTrait, ActiveValue, EntityTrait};
 use crate::{
     api::{
         error_response::ErrorResponse,
-        guest::{
-            self,
-            update_guest::{UpdateGuestInput, UpdateGuestOutput},
-        },
+        guest::update_guest::{UpdateGuestInput, UpdateGuestOutput},
     },
     app_state::AppState,
     persistence,
