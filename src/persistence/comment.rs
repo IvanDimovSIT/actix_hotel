@@ -1,8 +1,14 @@
 use sea_orm::prelude::DateTime;
 use sea_orm::prelude::StringLen;
+use sea_orm::ColumnTrait;
+use sea_orm::ConnectionTrait;
+use sea_orm::DbErr;
 use sea_orm::DerivePrimaryKey;
 use sea_orm::EntityTrait;
+use sea_orm::PaginatorTrait;
 use sea_orm::PrimaryKeyTrait;
+use sea_orm::QueryFilter;
+use sea_orm::QueryOrder;
 use sea_orm::Related;
 use sea_orm::RelationDef;
 use sea_orm::RelationTrait;
@@ -49,4 +55,28 @@ impl Related<super::user::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::User.def()
     }
+}
+
+pub async fn get_paged_comments<T>(
+    db: &T,
+    room_id: Uuid,
+    page: u64,
+    size: u64,
+) -> Result<(u64, Vec<Model>), DbErr>
+where
+    T: ConnectionTrait,
+{
+    let comments = Entity::find()
+        .filter(Column::RoomId.eq(room_id))
+        .order_by(Column::PostedTime, sea_orm::Order::Desc)
+        .paginate(db, size)
+        .fetch_page(page)
+        .await?;
+
+    let count = Entity::find()
+        .filter(Column::RoomId.eq(room_id))
+        .count(db)
+        .await?;
+
+    Ok((count, comments))
 }

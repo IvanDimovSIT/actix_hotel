@@ -16,15 +16,16 @@ async fn check_room_exists(
     app_state: &AppState,
     input: &AddCommentInput,
 ) -> Result<(), ErrorResponse> {
-    let room = room::Entity::find_by_id(input.room_id)
+    let room_option = room::Entity::find_by_id(input.room_id)
         .one(app_state.db.as_ref())
         .await?;
 
-    require_some(
-        room,
-        || format!("Room with id '{}' not found", input.room_id),
-        StatusCode::NOT_FOUND,
-    )?;
+    let message = || format!("Room with id '{}' not found", input.room_id);
+    let room = require_some(room_option, message, StatusCode::NOT_FOUND)?;
+
+    if room.is_deleted {
+        return Err(ErrorResponse::new(message(), StatusCode::NOT_FOUND));
+    }
 
     Ok(())
 }

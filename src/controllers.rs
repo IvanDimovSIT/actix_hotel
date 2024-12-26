@@ -34,7 +34,8 @@ pub mod room;
     booking::get_booking_controller,
     booking::get_own_bookings_controller,
     booking::cancel_booking_controller,
-    comment::add_comment_controller
+    comment::add_comment_controller,
+    comment::get_comments_controller
 ))]
 pub struct ApiDoc;
 
