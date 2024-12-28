@@ -1,7 +1,7 @@
 use actix_web::{
     get,
     http::StatusCode,
-    post,
+    patch, post,
     web::{Data, Json, Path, Query, ServiceConfig},
     HttpRequest, Responder,
 };
@@ -13,13 +13,16 @@ use crate::{
         comment::{
             add_comment::{AddCommentInput, AddCommentOutput},
             get_comments::{GetCommentsInput, GetCommentsOutput},
+            update_comment::{UpdateCommentInput, UpdateCommentOutput},
             Comment,
         },
         error_response::ErrorResponse,
     },
     app_state::AppState,
     persistence::user::Role,
-    services::comment::{add_comment::add_comment, get_comments::get_comments},
+    services::comment::{
+        add_comment::add_comment, get_comments::get_comments, update_comment::update_comment,
+    },
     util::{process_request, process_request_secured},
 };
 
@@ -32,7 +35,9 @@ use crate::{
         AddCommentOutput,
         Comment,
         GetCommentsInput,
-        GetCommentsOutput
+        GetCommentsOutput,
+        UpdateCommentInput,
+        UpdateCommentOutput
     ))
 )]
 pub struct CommentApiDoc;
@@ -40,6 +45,7 @@ pub struct CommentApiDoc;
 pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(add_comment_controller);
     cfg.service(get_comments_controller);
+    cfg.service(update_comment_controller);
 }
 
 #[utoipa::path(
@@ -99,6 +105,45 @@ pub async fn get_comments_controller(
             ..input.into_inner()
         },
         get_comments,
+        StatusCode::OK,
+    )
+    .await
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Successfully updated comment", body = AddCommentOutput),
+        (status = 400, description = "Invalid input", body = ErrorResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse),
+        (status = 403, description = "Invalid credentials", body = ErrorResponse),
+        (status = 404, description = "Comment not found", body = ErrorResponse),
+    ),
+    request_body(
+        content = UpdateCommentInput,
+        description = "Comment data",
+        content_type = "application/json"
+    ),
+    params(
+        ("commentId" = String, Path, description = "Comment id", example = "9ddcc342-b0fe-4e1f-a35e-593cb792b55c"),
+    ),
+    security(("bearer_auth" = []))
+)]
+#[patch("/comment/{commentId}")]
+pub async fn update_comment_controller(
+    req: HttpRequest,
+    state: Data<AppState>,
+    input: Json<UpdateCommentInput>,
+    path: Path<Uuid>,
+) -> impl Responder {
+    process_request_secured(
+        req,
+        &[Role::User, Role::Admin],
+        &state,
+        UpdateCommentInput {
+            comment_id: path.into_inner(),
+            ..input.into_inner()
+        },
+        update_comment,
         StatusCode::OK,
     )
     .await
