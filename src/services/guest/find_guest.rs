@@ -7,7 +7,7 @@ use crate::{
     persistence::guest,
 };
 
-pub async fn find_guest(
+pub async fn find_guest_service(
     app_state: &AppState,
     input: FindGuestInput,
 ) -> Result<FindGuestOutput, ErrorResponse> {

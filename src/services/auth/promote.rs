@@ -10,7 +10,7 @@ use crate::{
     util::find_user,
 };
 
-pub async fn promote(
+pub async fn promote_service(
     app_state: &AppState,
     input: PromoteInput,
 ) -> Result<PromoteOutput, ErrorResponse> {

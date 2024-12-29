@@ -12,6 +12,16 @@ use crate::{
     util::require_some,
 };
 
+pub async fn get_booking_service(
+    app_state: &AppState,
+    input: GetBookingInput,
+) -> Result<GetBookingOutput, ErrorResponse> {
+    let booking = find_booking(app_state, &input).await?;
+    check_has_access(&booking, &input)?;
+
+    convert_to_output(app_state, booking).await
+}
+
 async fn find_booking(
     app_state: &AppState,
     input: &GetBookingInput,
@@ -138,14 +148,4 @@ async fn convert_to_output(
         total_price: booking.total_price,
         status: booking.status,
     })
-}
-
-pub async fn get_booking(
-    app_state: &AppState,
-    input: GetBookingInput,
-) -> Result<GetBookingOutput, ErrorResponse> {
-    let booking = find_booking(app_state, &input).await?;
-    check_has_access(&booking, &input)?;
-
-    convert_to_output(app_state, booking).await
 }

@@ -13,6 +13,15 @@ use crate::{
     util::require_some,
 };
 
+pub async fn update_comment_service(
+    app_state: &AppState,
+    input: UpdateCommentInput,
+) -> Result<UpdateCommentOutput, ErrorResponse> {
+    let comment = find_comment(app_state, &input).await?;
+    check_can_update_comment(&comment, &input)?;
+    save_comment(app_state, input, comment).await
+}
+
 async fn find_comment(
     app_state: &AppState,
     input: &UpdateCommentInput,
@@ -58,13 +67,4 @@ async fn save_comment(
     updated_comment.save(app_state.db.as_ref()).await?;
 
     Ok(UpdateCommentOutput)
-}
-
-pub async fn update_comment(
-    app_state: &AppState,
-    input: UpdateCommentInput,
-) -> Result<UpdateCommentOutput, ErrorResponse> {
-    let comment = find_comment(app_state, &input).await?;
-    check_can_update_comment(&comment, &input)?;
-    save_comment(app_state, input, comment).await
 }

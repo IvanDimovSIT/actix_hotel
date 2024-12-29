@@ -21,7 +21,8 @@ use crate::{
     app_state::AppState,
     persistence::user::Role,
     services::comment::{
-        add_comment::add_comment, get_comments::get_comments, update_comment::update_comment,
+        add_comment::add_comment_service, get_comments::get_comments_service,
+        update_comment::update_comment_service,
     },
     util::{process_request, process_request_secured},
 };
@@ -74,7 +75,7 @@ pub async fn add_comment_controller(
         &[Role::User, Role::Admin],
         &state,
         input.into_inner(),
-        add_comment,
+        add_comment_service,
         StatusCode::CREATED,
     )
     .await
@@ -104,7 +105,7 @@ pub async fn get_comments_controller(
             room_id: Some(path.into_inner()),
             ..input.into_inner()
         },
-        get_comments,
+        get_comments_service,
         StatusCode::OK,
     )
     .await
@@ -143,7 +144,7 @@ pub async fn update_comment_controller(
             comment_id: path.into_inner(),
             ..input.into_inner()
         },
-        update_comment,
+        update_comment_service,
         StatusCode::OK,
     )
     .await

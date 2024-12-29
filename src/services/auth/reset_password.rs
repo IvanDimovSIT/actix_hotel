@@ -18,6 +18,21 @@ use crate::{
     util::require_some,
 };
 
+pub async fn reset_password_service(
+    app_state: &AppState,
+    input: ResetPasswordInput,
+) -> Result<ResetPasswordOutput, ErrorResponse> {
+    let (otp, user) = find_user_with_otp(app_state, &input).await?;
+    validate_otp(&otp, &input)?;
+
+    let transaction = app_state.db.begin().await?;
+    change_user_password(&transaction, user, &input).await?;
+    delete_all_for_user(&transaction, &otp.user_id).await?;
+    transaction.commit().await?;
+
+    Ok(ResetPasswordOutput)
+}
+
 pub async fn find_user_with_otp(
     app_state: &AppState,
     input: &ResetPasswordInput,
@@ -66,19 +81,4 @@ async fn change_user_password(
     active_user.save(transaction).await?;
 
     Ok(())
-}
-
-pub async fn reset_password(
-    app_state: &AppState,
-    input: ResetPasswordInput,
-) -> Result<ResetPasswordOutput, ErrorResponse> {
-    let (otp, user) = find_user_with_otp(app_state, &input).await?;
-    validate_otp(&otp, &input)?;
-
-    let transaction = app_state.db.begin().await?;
-    change_user_password(&transaction, user, &input).await?;
-    delete_all_for_user(&transaction, &otp.user_id).await?;
-    transaction.commit().await?;
-
-    Ok(ResetPasswordOutput)
 }

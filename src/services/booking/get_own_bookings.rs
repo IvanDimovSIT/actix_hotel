@@ -10,7 +10,7 @@ use crate::{
     util::require_some,
 };
 
-pub async fn get_own_bookings(
+pub async fn get_own_bookings_service(
     app_state: &AppState,
     input: GetOwnBookingsInput,
 ) -> Result<GetOwnBookingsOutput, ErrorResponse> {

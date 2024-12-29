@@ -11,19 +11,7 @@ use crate::{
     util::{create_token_from_user, require_some},
 };
 
-async fn find_user(app_state: &AppState, claims: &Claims) -> Result<Model, ErrorResponse> {
-    let option_find_user = find_user_by_id(app_state.db.as_ref(), &claims.user_id).await?;
-
-    let user = require_some(
-        option_find_user,
-        || format!("User with email '{}' not found", &claims.user_id),
-        StatusCode::NOT_FOUND,
-    )?;
-
-    Ok(user)
-}
-
-pub async fn refresh_token(
+pub async fn refresh_token_service(
     app_state: &AppState,
     input: RefreshTokenInput,
 ) -> Result<RefreshTokenOutput, ErrorResponse> {
@@ -36,4 +24,16 @@ pub async fn refresh_token(
 
     let token = create_token_from_user(&user, app_state)?;
     Ok(RefreshTokenOutput { token })
+}
+
+async fn find_user(app_state: &AppState, claims: &Claims) -> Result<Model, ErrorResponse> {
+    let option_find_user = find_user_by_id(app_state.db.as_ref(), &claims.user_id).await?;
+
+    let user = require_some(
+        option_find_user,
+        || format!("User with email '{}' not found", &claims.user_id),
+        StatusCode::NOT_FOUND,
+    )?;
+
+    Ok(user)
 }

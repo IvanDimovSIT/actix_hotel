@@ -20,7 +20,9 @@ use crate::{
     },
     app_state::AppState,
     persistence::{bed::BedSize, room::BathroomType, user::Role},
-    services::room::{add_room::add_room, delete_room::delete_room, get_room::get_room},
+    services::room::{
+        add_room::add_room_service, delete_room::delete_room_service, get_room::get_room_service,
+    },
     util::process_request_secured,
 };
 
@@ -73,7 +75,7 @@ pub async fn add_room_controller(
         &[Role::Admin],
         &state,
         input.into_inner(),
-        add_room,
+        add_room_service,
         StatusCode::CREATED,
     )
     .await
@@ -106,7 +108,7 @@ pub async fn get_room_controller(
         &[Role::User, Role::Admin],
         &state,
         input,
-        get_room,
+        get_room_service,
         StatusCode::OK,
     )
     .await
@@ -140,7 +142,7 @@ pub async fn delete_room_controller(
         &[Role::Admin],
         &state,
         input,
-        delete_room,
+        delete_room_service,
         StatusCode::OK,
     )
     .await

@@ -19,6 +19,25 @@ use crate::{
     },
 };
 
+pub async fn add_room_service(
+    app_state: &AppState,
+    input: AddRoomInput,
+) -> Result<AddRoomOutput, ErrorResponse> {
+    check_room_number_not_used(&app_state.db, &input).await?;
+
+    let transaction = app_state.db.begin().await?;
+
+    let room_id = insert_room(&transaction, &input).await?;
+
+    for bed in &input.beds {
+        insert_bed(&transaction, bed, &room_id).await?;
+    }
+
+    transaction.commit().await?;
+
+    Ok(AddRoomOutput { room_id })
+}
+
 async fn check_room_number_not_used(
     db: &DatabaseConnection,
     input: &AddRoomInput,
@@ -74,23 +93,4 @@ async fn insert_bed(
     bed_to_save.insert(transaction).await?;
 
     Ok(())
-}
-
-pub async fn add_room(
-    app_state: &AppState,
-    input: AddRoomInput,
-) -> Result<AddRoomOutput, ErrorResponse> {
-    check_room_number_not_used(&app_state.db, &input).await?;
-
-    let transaction = app_state.db.begin().await?;
-
-    let room_id = insert_room(&transaction, &input).await?;
-
-    for bed in &input.beds {
-        insert_bed(&transaction, bed, &room_id).await?;
-    }
-
-    transaction.commit().await?;
-
-    Ok(AddRoomOutput { room_id })
 }

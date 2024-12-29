@@ -25,9 +25,10 @@ use crate::{
     persistence::user::Role,
     security::Claims,
     services::auth::{
-        change_password::change_password, login::login, logout::logout, promote::promote,
-        refresh_token::refresh_token, register_user::register_user, reset_password::reset_password,
-        send_otp::send_otp,
+        change_password::change_password_service, login::login_service, logout::logout_service,
+        promote::promote_service, refresh_token::refresh_token_service,
+        register_user::register_user_service, reset_password::reset_password_service,
+        send_otp::send_otp_service,
     },
     util::{process_request, process_request_secured},
 };
@@ -97,7 +98,7 @@ pub async fn register_controller(
     process_request(
         &state,
         input.into_inner(),
-        register_user,
+        register_user_service,
         StatusCode::CREATED,
     )
     .await
@@ -117,7 +118,7 @@ pub async fn register_controller(
 )]
 #[post("/auth/login")]
 pub async fn login_controller(state: Data<AppState>, input: Json<LoginInput>) -> impl Responder {
-    process_request(&state, input.into_inner(), login, StatusCode::OK).await
+    process_request(&state, input.into_inner(), login_service, StatusCode::OK).await
 }
 
 #[utoipa::path(
@@ -145,7 +146,7 @@ pub async fn promote_controller(
         &[Role::Admin],
         &state,
         input.into_inner(),
-        promote,
+        promote_service,
         StatusCode::OK,
     )
     .await
@@ -171,7 +172,7 @@ pub async fn refresh_token_controller(req: HttpRequest, state: Data<AppState>) -
         &[Role::User, Role::Admin],
         &state,
         input,
-        refresh_token,
+        refresh_token_service,
         StatusCode::OK,
     )
     .await
@@ -202,7 +203,7 @@ pub async fn change_password_controller(
         &[Role::Admin, Role::User],
         &state,
         input.into_inner(),
-        change_password,
+        change_password_service,
         StatusCode::OK,
     )
     .await
@@ -225,7 +226,7 @@ pub async fn send_otp_controller(
     state: Data<AppState>,
     input: Json<SendOtpInput>,
 ) -> impl Responder {
-    process_request(&state, input.into_inner(), send_otp, StatusCode::OK).await
+    process_request(&state, input.into_inner(), send_otp_service, StatusCode::OK).await
 }
 
 #[utoipa::path(
@@ -245,7 +246,13 @@ pub async fn reset_password_controller(
     state: Data<AppState>,
     input: Json<ResetPasswordInput>,
 ) -> impl Responder {
-    process_request(&state, input.into_inner(), reset_password, StatusCode::OK).await
+    process_request(
+        &state,
+        input.into_inner(),
+        reset_password_service,
+        StatusCode::OK,
+    )
+    .await
 }
 
 #[utoipa::path(
@@ -262,7 +269,7 @@ pub async fn logout_controller(req: HttpRequest, state: Data<AppState>) -> impl 
         &[Role::User, Role::Admin],
         &state,
         LogoutInput::default(),
-        logout,
+        logout_service,
         StatusCode::OK,
     )
     .await

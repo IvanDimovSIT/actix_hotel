@@ -23,9 +23,9 @@ use crate::{
     app_state::AppState,
     persistence::{booking::BookingStatus, user::Role},
     services::booking::{
-        book_room::book_room, cancel_booking::cancel_booking,
-        find_unoccupied_rooms::find_unoccupied_rooms, get_booking::get_booking,
-        get_own_bookings::get_own_bookings, pay_booking::pay_booking,
+        book_room::book_room_service, cancel_booking::cancel_booking_service,
+        find_unoccupied_rooms::find_unoccupied_rooms_service, get_booking::get_booking_service,
+        get_own_bookings::get_own_bookings_service, pay_booking::pay_booking_service,
     },
     util::process_request_secured,
 };
@@ -94,7 +94,7 @@ pub async fn find_unoccupied_rooms_controller(
         &[Role::User, Role::Admin],
         &state,
         input.into_inner(),
-        find_unoccupied_rooms,
+        find_unoccupied_rooms_service,
         StatusCode::OK,
     )
     .await
@@ -125,7 +125,7 @@ pub async fn book_room_controller(
         &[Role::Admin],
         &state,
         input.into_inner(),
-        book_room,
+        book_room_service,
         StatusCode::CREATED,
     )
     .await
@@ -157,7 +157,7 @@ pub async fn pay_booking_controller(
         PayBookingInput {
             booking_id: input.into_inner(),
         },
-        pay_booking,
+        pay_booking_service,
         StatusCode::OK,
     )
     .await
@@ -189,7 +189,7 @@ pub async fn cancel_booking_controller(
         CancelBookingInput {
             booking_id: input.into_inner(),
         },
-        cancel_booking,
+        cancel_booking_service,
         StatusCode::OK,
     )
     .await
@@ -222,7 +222,7 @@ pub async fn get_booking_controller(
             booking_id: input.into_inner(),
             ..Default::default()
         },
-        get_booking,
+        get_booking_service,
         StatusCode::OK,
     )
     .await
@@ -253,7 +253,7 @@ pub async fn get_own_bookings_controller(
         &[Role::User, Role::Admin],
         &state,
         input.into_inner(),
-        get_own_bookings,
+        get_own_bookings_service,
         StatusCode::OK,
     )
     .await

@@ -11,6 +11,16 @@ use crate::{
     util::require_some,
 };
 
+pub async fn cancel_booking_service(
+    app_state: &AppState,
+    input: CancelBookingInput,
+) -> Result<CancelBookingOutput, ErrorResponse> {
+    let booking = find_booking(app_state, input).await?;
+    check_not_payed(&booking)?;
+    check_before_start_date(&booking)?;
+    set_status_to_canceled(app_state, booking).await
+}
+
 async fn find_booking(
     app_state: &AppState,
     input: CancelBookingInput,
@@ -65,14 +75,4 @@ async fn set_status_to_canceled(
     .await?;
 
     Ok(CancelBookingOutput)
-}
-
-pub async fn cancel_booking(
-    app_state: &AppState,
-    input: CancelBookingInput,
-) -> Result<CancelBookingOutput, ErrorResponse> {
-    let booking = find_booking(app_state, input).await?;
-    check_not_payed(&booking)?;
-    check_before_start_date(&booking)?;
-    set_status_to_canceled(app_state, booking).await
 }

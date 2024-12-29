@@ -12,6 +12,24 @@ use crate::{
     util::require_some,
 };
 
+pub async fn change_password_service(
+    app_state: &AppState,
+    input: ChangePasswordInput,
+) -> Result<ChangePasswordOutput, ErrorResponse> {
+    let user = find_user(app_state, &input).await?;
+
+    if !passwords_match(&input.old_password, &user.password) {
+        return Err(ErrorResponse::new(
+            "Invalid credentials".to_string(),
+            StatusCode::UNAUTHORIZED,
+        ));
+    }
+
+    save_new_user(app_state, user, &input).await?;
+
+    Ok(ChangePasswordOutput)
+}
+
 async fn find_user(
     app_state: &AppState,
     input: &ChangePasswordInput,
@@ -37,22 +55,4 @@ async fn save_new_user(
     active_user.update(app_state.db.as_ref()).await?;
 
     Ok(())
-}
-
-pub async fn change_password(
-    app_state: &AppState,
-    input: ChangePasswordInput,
-) -> Result<ChangePasswordOutput, ErrorResponse> {
-    let user = find_user(app_state, &input).await?;
-
-    if !passwords_match(&input.old_password, &user.password) {
-        return Err(ErrorResponse::new(
-            "Invalid credentials".to_string(),
-            StatusCode::UNAUTHORIZED,
-        ));
-    }
-
-    save_new_user(app_state, user, &input).await?;
-
-    Ok(ChangePasswordOutput)
 }

@@ -16,6 +16,15 @@ use crate::{
     util::require_some,
 };
 
+pub async fn get_room_service(
+    app_state: &AppState,
+    input: GetRoomInput,
+) -> Result<GetRoomOutput, ErrorResponse> {
+    find_room(app_state, &input)
+        .await
+        .map(convert_room_to_output)
+}
+
 async fn find_room(
     app_state: &AppState,
     input: &GetRoomInput,
@@ -61,13 +70,4 @@ fn convert_room_to_output(room_beds: (room::Model, Vec<bed::Model>)) -> GetRoomO
         bathroom_type: room_beds.0.bathroom_type,
         beds,
     }
-}
-
-pub async fn get_room(
-    app_state: &AppState,
-    input: GetRoomInput,
-) -> Result<GetRoomOutput, ErrorResponse> {
-    find_room(app_state, &input)
-        .await
-        .map(convert_room_to_output)
 }

@@ -23,6 +23,18 @@ use crate::{
 
 const MIN_BOOKING_AGE: u32 = 18;
 
+pub async fn book_room_service(
+    app_state: &AppState,
+    input: BookRoomInput,
+) -> Result<BookRoomOutput, ErrorResponse> {
+    validate_guests(app_state, &input).await?;
+    let (room_capacity, room_price) = find_room_capacity_and_price(app_state, &input).await?;
+    check_is_capacity_enough(&input, room_capacity)?;
+    validate_guest_user(app_state, &input).await?;
+    check_room_occipied(app_state, &input).await?;
+    create_booking(app_state, input, room_price).await
+}
+
 async fn get_booked_by(app_state: &AppState, input: &BookRoomInput) -> Result<Uuid, ErrorResponse> {
     if let Some(admin_id) = &input.booked_by {
         let admin_option = user::find_user_by_id(app_state.db.as_ref(), admin_id).await?;
@@ -271,16 +283,4 @@ async fn create_booking(
     transaction.commit().await?;
 
     Ok(BookRoomOutput { booking_id })
-}
-
-pub async fn book_room(
-    app_state: &AppState,
-    input: BookRoomInput,
-) -> Result<BookRoomOutput, ErrorResponse> {
-    validate_guests(app_state, &input).await?;
-    let (room_capacity, room_price) = find_room_capacity_and_price(app_state, &input).await?;
-    check_is_capacity_enough(&input, room_capacity)?;
-    validate_guest_user(app_state, &input).await?;
-    check_room_occipied(app_state, &input).await?;
-    create_booking(app_state, input, room_price).await
 }

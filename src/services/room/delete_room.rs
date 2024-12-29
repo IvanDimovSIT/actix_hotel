@@ -11,6 +11,15 @@ use crate::{
     util::require_some,
 };
 
+pub async fn delete_room_service(
+    app_state: &AppState,
+    input: DeleteRoomInput,
+) -> Result<DeleteRoomOutput, ErrorResponse> {
+    let room = find_room(app_state, &input).await?;
+
+    Ok(set_delete_flag_for_room(app_state, room).await?)
+}
+
 async fn find_room(
     app_state: &AppState,
     input: &DeleteRoomInput,
@@ -47,13 +56,4 @@ async fn set_delete_flag_for_room(
     active_model_room.update(app_state.db.as_ref()).await?;
 
     Ok(DeleteRoomOutput)
-}
-
-pub async fn delete_room(
-    app_state: &AppState,
-    input: DeleteRoomInput,
-) -> Result<DeleteRoomOutput, ErrorResponse> {
-    let room = find_room(app_state, &input).await?;
-
-    Ok(set_delete_flag_for_room(app_state, room).await?)
 }

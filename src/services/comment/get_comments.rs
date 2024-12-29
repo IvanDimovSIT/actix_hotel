@@ -14,6 +14,14 @@ use crate::{
     util::require_some,
 };
 
+pub async fn get_comments_service(
+    app_state: &AppState,
+    input: GetCommentsInput,
+) -> Result<GetCommentsOutput, ErrorResponse> {
+    check_room_exists_and_not_deleted(app_state, &input).await?;
+    fetch_comments(app_state, input).await
+}
+
 async fn check_room_exists_and_not_deleted(
     app_state: &AppState,
     input: &GetCommentsInput,
@@ -61,12 +69,4 @@ async fn fetch_comments(
         total_size: count,
         comments: convert_comments(comments),
     })
-}
-
-pub async fn get_comments(
-    app_state: &AppState,
-    input: GetCommentsInput,
-) -> Result<GetCommentsOutput, ErrorResponse> {
-    check_room_exists_and_not_deleted(app_state, &input).await?;
-    fetch_comments(app_state, input).await
 }

@@ -22,8 +22,8 @@ use crate::{
     app_state::AppState,
     persistence::user::Role,
     services::guest::{
-        add_guest::add_guest, find_guest::find_guest, get_guest::get_guest,
-        update_guest::update_guest,
+        add_guest::add_guest_service, find_guest::find_guest_service, get_guest::get_guest_service,
+        update_guest::update_guest_service,
     },
     util::process_request_secured,
 };
@@ -83,7 +83,7 @@ pub async fn add_guest_controller(
         &[Role::Admin],
         &state,
         input.into_inner(),
-        add_guest,
+        add_guest_service,
         StatusCode::CREATED,
     )
     .await
@@ -116,7 +116,7 @@ pub async fn find_guest_controller(
         &[Role::Admin],
         &state,
         input.into_inner(),
-        find_guest,
+        find_guest_service,
         StatusCode::OK,
     )
     .await
@@ -148,7 +148,7 @@ pub async fn get_guest_controller(
         GetGuestInput {
             guest_id: path.into_inner(),
         },
-        get_guest,
+        get_guest_service,
         StatusCode::OK,
     )
     .await
@@ -187,7 +187,7 @@ pub async fn update_guest_controller(
             id: Some(path.into_inner()),
             ..input.into_inner()
         },
-        update_guest,
+        update_guest_service,
         StatusCode::OK,
     )
     .await

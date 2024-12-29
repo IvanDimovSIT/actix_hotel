@@ -12,6 +12,15 @@ use crate::{
     util::require_some,
 };
 
+pub async fn add_comment_service(
+    app_state: &AppState,
+    input: AddCommentInput,
+) -> Result<AddCommentOutput, ErrorResponse> {
+    check_room_exists(app_state, &input).await?;
+    check_user_can_post(app_state, &input).await?;
+    insert_comment(app_state, input).await
+}
+
 async fn check_room_exists(
     app_state: &AppState,
     input: &AddCommentInput,
@@ -74,13 +83,4 @@ async fn insert_comment(
     .await?;
 
     Ok(AddCommentOutput { comment_id: id })
-}
-
-pub async fn add_comment(
-    app_state: &AppState,
-    input: AddCommentInput,
-) -> Result<AddCommentOutput, ErrorResponse> {
-    check_room_exists(app_state, &input).await?;
-    check_user_can_post(app_state, &input).await?;
-    insert_comment(app_state, input).await
 }

@@ -12,6 +12,17 @@ use crate::{
 
 use super::{find_conflicting_fields, find_existing_guest};
 
+pub async fn add_guest_service(
+    app_state: &AppState,
+    input: AddGuestInput,
+) -> Result<AddGuestOutput, ErrorResponse> {
+    check_ucn_and_card_number_not_in_use(app_state, &input).await?;
+
+    let guest_id = save_guest(app_state, &input).await?;
+
+    Ok(AddGuestOutput { guest_id })
+}
+
 async fn check_ucn_and_card_number_not_in_use(
     app_state: &AppState,
     input: &AddGuestInput,
@@ -67,15 +78,4 @@ async fn save_guest(app_state: &AppState, input: &AddGuestInput) -> Result<Uuid,
     guest.insert(app_state.db.as_ref()).await?;
 
     Ok(id)
-}
-
-pub async fn add_guest(
-    app_state: &AppState,
-    input: AddGuestInput,
-) -> Result<AddGuestOutput, ErrorResponse> {
-    check_ucn_and_card_number_not_in_use(app_state, &input).await?;
-
-    let guest_id = save_guest(app_state, &input).await?;
-
-    Ok(AddGuestOutput { guest_id })
 }

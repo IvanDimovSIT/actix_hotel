@@ -16,6 +16,14 @@ use crate::{
     util::require_some,
 };
 
+pub async fn get_guest_service(
+    app_state: &AppState,
+    input: GetGuestInput,
+) -> Result<GetGuestOutput, ErrorResponse> {
+    let guest = find_guest_in_db(app_state, input).await?;
+    Ok(convert_model_to_output(guest)?)
+}
+
 async fn find_guest_in_db(
     app_state: &AppState,
     input: GetGuestInput,
@@ -75,12 +83,4 @@ fn convert_model_to_output(guest: guest::Model) -> Result<GetGuestOutput, ErrorR
         id_card,
         phone_number: guest.phone_number,
     })
-}
-
-pub async fn get_guest(
-    app_state: &AppState,
-    input: GetGuestInput,
-) -> Result<GetGuestOutput, ErrorResponse> {
-    let guest = find_guest_in_db(app_state, input).await?;
-    Ok(convert_model_to_output(guest)?)
 }

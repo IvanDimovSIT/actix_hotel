@@ -16,6 +16,17 @@ use crate::{
     util::find_user,
 };
 
+pub async fn send_otp_service(
+    app_state: &AppState,
+    input: SendOtpInput,
+) -> Result<SendOtpOutput, ErrorResponse> {
+    let user = find_user(app_state, &input.email).await?;
+    let otp_code = create_otp(app_state, &user).await?;
+    send_email(app_state, &user, &otp_code).await?;
+
+    Ok(SendOtpOutput)
+}
+
 async fn create_otp(app_state: &AppState, user: &user::Model) -> Result<String, ErrorResponse> {
     one_time_password::delete_all_for_user(app_state.db.as_ref(), &user.id).await?;
 
@@ -48,15 +59,4 @@ async fn send_email(
         .await?;
 
     Ok(())
-}
-
-pub async fn send_otp(
-    app_state: &AppState,
-    input: SendOtpInput,
-) -> Result<SendOtpOutput, ErrorResponse> {
-    let user = find_user(app_state, &input.email).await?;
-    let otp_code = create_otp(app_state, &user).await?;
-    send_email(app_state, &user, &otp_code).await?;
-
-    Ok(SendOtpOutput)
 }

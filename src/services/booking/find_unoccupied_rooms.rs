@@ -9,6 +9,20 @@ use crate::{
     persistence::{bed, booking::is_room_occupied_for_period, room},
 };
 
+pub async fn find_unoccupied_rooms_service(
+    app_state: &AppState,
+    input: FindUnoccupiedRoomsInput,
+) -> Result<FindUnoccupiedRoomsOutput, ErrorResponse> {
+    let room_ids = room::find_all_room_ids_not_deleted(app_state.db.as_ref()).await?;
+    let free_room_ids = apply_filters(app_state, &input, &room_ids).await?;
+
+    let output = FindUnoccupiedRoomsOutput {
+        room_ids: free_room_ids,
+    };
+
+    Ok(output)
+}
+
 async fn check_bed_capacity(
     app_state: &AppState,
     room_id: Uuid,
@@ -54,18 +68,4 @@ async fn apply_filters(
     }
 
     Ok(free_room_ids)
-}
-
-pub async fn find_unoccupied_rooms(
-    app_state: &AppState,
-    input: FindUnoccupiedRoomsInput,
-) -> Result<FindUnoccupiedRoomsOutput, ErrorResponse> {
-    let room_ids = room::find_all_room_ids_not_deleted(app_state.db.as_ref()).await?;
-    let free_room_ids = apply_filters(app_state, &input, &room_ids).await?;
-
-    let output = FindUnoccupiedRoomsOutput {
-        room_ids: free_room_ids,
-    };
-
-    Ok(output)
 }

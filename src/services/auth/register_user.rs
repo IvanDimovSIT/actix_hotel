@@ -12,7 +12,7 @@ use crate::{
     security::hash_password,
 };
 
-pub async fn register_user(
+pub async fn register_user_service(
     app_state: &AppState,
     input: RegisterUserInput,
 ) -> Result<RegisterUserOutput, ErrorResponse> {

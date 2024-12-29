@@ -14,6 +14,15 @@ use crate::{
 
 use super::find_conflicting_fields;
 
+pub async fn update_guest_service(
+    app_state: &AppState,
+    input: UpdateGuestInput,
+) -> Result<UpdateGuestOutput, ErrorResponse> {
+    check_exists(app_state, &input).await?;
+    check_ucn_and_card_number_not_in_use(app_state, &input).await?;
+    save_guest(app_state, input).await
+}
+
 async fn check_exists(app_state: &AppState, input: &UpdateGuestInput) -> Result<(), ErrorResponse> {
     require_some(
         persistence::guest::Entity::find_by_id(input.id.unwrap())
@@ -88,13 +97,4 @@ async fn save_guest(
     guest.save(app_state.db.as_ref()).await?;
 
     Ok(UpdateGuestOutput)
-}
-
-pub async fn update_guest(
-    app_state: &AppState,
-    input: UpdateGuestInput,
-) -> Result<UpdateGuestOutput, ErrorResponse> {
-    check_exists(app_state, &input).await?;
-    check_ucn_and_card_number_not_in_use(app_state, &input).await?;
-    save_guest(app_state, input).await
 }

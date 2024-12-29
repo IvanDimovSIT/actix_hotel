@@ -10,7 +10,7 @@ use crate::{
     util::{error_to_response, require_some},
 };
 
-pub async fn logout(
+pub async fn logout_service(
     app_state: &AppState,
     input: LogoutInput,
 ) -> Result<LogoutOutput, ErrorResponse> {

@@ -13,6 +13,14 @@ use crate::{
     util::require_some,
 };
 
+pub async fn pay_booking_service(
+    app_state: &AppState,
+    input: PayBookingInput,
+) -> Result<PayBookingOutput, ErrorResponse> {
+    let booking = find_booking(app_state, input).await?;
+    set_status_as_paid(app_state, booking).await
+}
+
 async fn find_booking(
     app_state: &AppState,
     input: PayBookingInput,
@@ -53,12 +61,4 @@ async fn set_status_as_paid(
             StatusCode::BAD_REQUEST,
         )),
     }
-}
-
-pub async fn pay_booking(
-    app_state: &AppState,
-    input: PayBookingInput,
-) -> Result<PayBookingOutput, ErrorResponse> {
-    let booking = find_booking(app_state, input).await?;
-    set_status_as_paid(app_state, booking).await
 }
